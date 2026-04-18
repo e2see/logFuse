@@ -229,7 +229,7 @@ $logFuseCss = logFuse::getCss($theme);
             <h3>🎨 CSS Customization</h3>
             <div class="scrollable">
                 <p>The HTML output uses <code>.lf-*</code> classes. You can override CSS variables:</p>
-                <pre>--lf-level-error: #e25950;\n--lf-level-info: #ff9f48;\n--lf-datetime-color: rgb(0,91,118);\n--lf-progress: 50%;</pre>
+                <pre>--lf-level-error: #e25950;<br />--lf-level-info: #ff9f48;<br />--lf-datetime-color: rgb(0,91,118);<br />--lf-progress: 50%;</pre>
             </div>
         </div>
     </div>
