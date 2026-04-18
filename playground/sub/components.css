@@ -1,0 +1,69 @@
+/* ============================================================
+   logFuse Playground – Components (Buttons, Formulare)
+   ============================================================ */
+.presets button {
+    background: var(--color-preset-bg);
+    border: 1px solid var(--color-preset-border);
+    border-radius: var(--radius-button);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-button);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-default);
+}
+.presets button:hover {
+    background: var(--color-button-hover-bg);
+    border-color: var(--color-button-hover-border);
+    box-shadow: var(--shadow-hover);
+}
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    flex-wrap: wrap;
+}
+.form-row > label {
+    width: 120px;
+    flex-shrink: 0;
+    font-weight: 500;
+}
+.form-row input,
+.form-row select {
+    flex: 1;
+    min-width: 150px;
+
+}
+.radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+    align-items: center;
+}
+.radio-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    cursor: pointer;
+}
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    cursor: pointer;
+}
+
+/* ============================================================
+   Additional: consistent select box width
+   ============================================================ */
+.field-group select,
+.field-group input {
+    min-width: 140px;
+}
+@media (max-width: 800px) {
+    .field-group select,
+    .field-group input {
+        min-width: auto;
+    }
+}

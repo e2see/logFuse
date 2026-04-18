@@ -1,0 +1,199 @@
+/* ============================================================
+   logFuse Playground – Template (Layout)
+   ============================================================ */
+.query-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+    margin: var(--spacing-xl) 0;
+}
+.query-card {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-card);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-default);
+    display: flex;
+    flex-direction: column;
+}
+.query-card h4 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-md);
+    color: var(--color-primary);
+}
+.sticky-input {
+    position: sticky;
+    top: 20px;
+    z-index: 100;
+    margin-bottom: var(--spacing-xl);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-default);
+}
+
+.card-body {
+    padding: var(--spacing-lg);
+}
+
+/* ============================================================
+   New form layout: select boxes with label on top, status line
+   ============================================================ */
+
+/* Container for all field groups (selects, page, page size) */
+.toolbar-selects {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Each field group: label above the control */
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.field-group label {
+    font-size: var(--font-size-small);
+    font-weight: 500;
+    color: var(--color-primary-light);
+}
+
+/* Special for page number and page size: keep them next to each other */
+.field-group.inline-group {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.field-group.inline-group label {
+    margin-bottom: 0;
+}
+
+/* Page input width (replaces inline style) */
+.page-input {
+    width: 80px;
+}
+
+/* Status line: left info, right "Ready" */
+.toolbar-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-md);
+    margin-top: var(--spacing-xs);
+    font-size: var(--font-size-small);
+}
+
+.status-info {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.status {
+    margin-left: auto;
+    color: var(--color-primary-light);
+    font-weight: 500;
+}
+
+/* Disabled select styling (opacity 0.2) */
+select:disabled {
+    opacity: 0.4;  /* 0.2 wäre sehr blass, 0.4 ist noch gut lesbar */
+    cursor: not-allowed;
+}
+
+/* Adjust spacing for small screens */
+@media (max-width: 800px) {
+    .toolbar-selects {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .field-group.inline-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .toolbar-status {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .status {
+        margin-left: 0;
+        text-align: right;
+    }
+}
+
+/* Legacy toolbar classes (kept for compatibility) */
+.toolbar-compact {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+.builder-select-group {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+.builder-select-group label {
+    font-weight: 500;
+    white-space: nowrap;
+}
+.output-container {
+    border-radius: var(--radius-code);
+    padding: var(--spacing-xl);
+    max-height: 500px;
+    overflow-y: auto;
+    flex: 1;
+}
+.log-textarea {
+    font-family: monospace;
+    font-size: 0.7rem;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 400px;
+}
+.json-output {
+    margin: 0;
+    white-space: pre-wrap;
+}
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+}
+.scrollable {
+    max-height: 250px;
+    overflow-y: auto;
+}
+.info-text {
+    font-size: var(--font-size-small);
+    color: var(--color-primary-light);
+}
+@media (max-width: 800px) {
+    .query-grid-2, .grid-2 {
+        grid-template-columns: 1fr;
+    }
+    .toolbar-compact {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .status {
+        margin-left: 0;
+        text-align: center;
+    }
+    .logo-container {
+        width: 60px;
+        top: 10px;
+        right: 10px;
+    }
+    .sticky-input {
+        top: 70px;
+    }
+}

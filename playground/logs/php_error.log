@@ -1,0 +1,49 @@
+{{LAST_YEAR}} PHP Fatal error:  Uncaught Error: Call to undefined function mb_strlen() in /var/www/mb.php:5
+Stack trace:
+#0 /var/www/index.php(3): require_once()
+#1 {main}
+  thrown in /var/www/mb.php on line 5
+{{DAYS_AGO:45}} PHP Fatal error:  Uncaught ArgumentCountError: Too few arguments to function User::__construct(), 0 passed in /var/www/factory.php on line 9 and exactly 2 expected in /var/www/user.php:12
+{{DAYS_AGO:40}} PHP Warning:  ZipArchive::close(): Read error: Is a directory in /var/www/zip.php on line 8
+{{DAYS_AGO:35}} PHP Notice:  Undefined property: stdClass::$email in /var/www/user.php on line 22
+{{DAYS_AGO:30}} PHP Warning:  rmdir(/tmp/cache): Directory not empty in /var/www/cleanup.php on line 11
+{{DAYS_AGO:28}} PHP Notice:  Only variables should be passed by reference in /var/www/ref.php on line 15
+{{DAYS_AGO:25}} PHP Warning:  json_decode(): Argument #1 ($json) must be a string, array given in /var/www/json.php on line 9
+{{DAYS_AGO:22}} PHP Fatal error:  Uncaught ValueError: date_create_from_format(): Argument #2 ($datetime) must not contain null bytes in /var/www/date.php:12
+Stack trace:
+#0 /var/www/date.php(12): date_create_from_format()
+#1 /var/www/index.php(6): include()
+#2 {main}
+  thrown in /var/www/date.php on line 12
+{{DAYS_AGO:20}} PHP Warning:  unserialize(): Error at offset 0 of 8 bytes in /var/www/cache.php on line 44
+{{DAYS_AGO:18}} PHP Notice:  Constant MY_CONST already defined in /var/www/constants.php on line 3
+{{DAYS_AGO:16}} PHP Warning:  PDO::__construct(): php_network_getaddresses: getaddrinfo failed: Name or service not known in /var/www/pdo.php on line 5
+{{DAYS_AGO:14}} PHP Fatal error:  Uncaught Error: Class 'Logger' not found in /var/www/app.php:56
+Stack trace:
+#0 /var/www/index.php(10): App->run()
+#1 {main}
+  thrown in /var/www/app.php on line 56
+{{DAYS_AGO:12}} PHP Parse error:  Invalid body indentation level (expecting an indentation at least 1) in /var/www/heredoc.php on line 33
+{{DAYS_AGO:10}} PHP Warning:  file_get_contents(https://api.example.com/data): failed to open stream: Connection timed out in /var/www/fetch.php on line 8
+{{DAYS_AGO:9}} PHP Notice:  Undefined index: action in /var/www/router.php on line 34
+{{DAYS_AGO:8}} PHP Warning:  session_start(): Cannot start session when headers already sent in /var/www/session.php on line 2
+{{DAYS_AGO:7}} PHP Fatal error:  Uncaught TypeError: count(): Argument #1 ($value) must be of type Countable|array, null given in /var/www/count.php:23
+Stack trace:
+#0 /var/www/count.php(23): count()
+#1 /var/www/index.php(5): require_once()
+#2 {main}
+  thrown in /var/www/count.php on line 23
+{{DAYS_AGO:6}} PHP Warning:  include(/var/www/missing.php): failed to open stream: No such file or directory in /var/www/index.php on line 15
+{{DAYS_AGO:5}} PHP Notice:  Array to string conversion in /var/www/stringify.php on line 9
+{{DAYS_AGO:4}} PHP Warning:  mysqli_connect(): (HY000/2002): Connection refused in /var/www/config.php on line 7
+{{DAYS_AGO:3}} PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 20480 bytes) in /var/www/bigarray.php on line 18
+{{DAYS_AGO:2}} PHP Parse error:  syntax error, unexpected 'echo' (T_ECHO) in /var/www/template.php on line 44
+{{DAYS_AGO:1}} PHP Notice:  Undefined variable: result in /var/www/display.php on line 12
+{{YESTERDAY}} PHP Warning:  Division by zero in /var/www/calc.php on line 23
+{{TODAY}} PHP Fatal error:  Uncaught Exception: Database connection lost in /var/www/db.php:67
+Stack trace:
+#0 /var/www/model.php(34): DB::query()
+#1 /var/www/controller.php(12): Model->getData()
+#2 /var/www/index.php(8): Controller->handle()
+#3 {main}
+  thrown in /var/www/db.php on line 67

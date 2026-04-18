@@ -1,0 +1,37 @@
+@media (min-width: 880px) {
+    :root {
+        --spacing-xs: 0.3rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 0.75rem;
+        --spacing-lg: 1rem;
+        --spacing-xl: 1.5rem;
+        --spacing-2xl: 2rem;
+        --font-size-base: 0.85rem;
+        --font-size-small: 0.75rem;
+        --font-size-h1: 1.8rem;
+        --font-size-button: 0.9rem;
+        --font-size-code: 0.8rem;
+    }
+}
+@media (min-width: 1600px) {
+    body { padding: 40px 40px 30vh; }
+}
+@media (min-width: 1600px) and (min-height: 1000px) {
+    .logo-container { width: 140px; }
+}
+@media (min-width: 1800px) {
+    body { padding-left: 5vw; padding-right: 5vw; }
+}
+@media (min-width: 2200px) {
+    body { padding-left: 10vw; padding-right: 10vw; }
+    .logo-container { width: 180px; }
+}
+@media (min-width: 2600px) {
+    body { padding-left: 15vw; padding-right: 15vw; }
+}
+@media (min-width: 3400px) {
+    body { padding-left: 20vw; padding-right: 20vw; }
+}
+@media (min-width: 4000px) {
+    body { padding-left: 25vw; padding-right: 25vw; }
+}

@@ -1,0 +1,153 @@
+/* ============================================================
+   logFuse Playground – Core
+   ============================================================ */
+:root {
+    --color-primary: #2c3e50;
+    --color-primary-light: #4a627a;
+    --color-text-body: #333;
+    --color-bg-body: #f9f9f9;
+    --color-bg-card: white;
+    --color-bg-code: #f4f6f9;
+    --color-border: #e0e4e8;
+    --color-border-input: #cfdfed;
+    --color-border-card: #e2e8f0;
+    --color-border-button: #cbdbe0;
+    --color-button-bg: #f0f4fa;
+    --color-button-hover-bg: #cfe5ff;
+    --color-button-hover-border: #bdc4cc;
+    --color-success-bg: #e0f2e9;
+    --color-success-text: #1e6f3f;
+    --color-error-bg: #fde8e8;
+    --color-error-text: #b33c2e;
+    --shadow-default: 5px 5px 10px rgba(0,0,0,.06);
+    --shadow-hover: 3px 3px 5px rgba(0,0,0,.1);
+    --radius-card: 16px;
+    --radius-button: 30px;
+    --radius-input: 6px;
+    --radius-code: 8px;
+    --spacing-xs: 0.3rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 0.75rem;
+    --spacing-lg: 0.8rem;
+    --spacing-xl: 0.9rem;
+    --spacing-2xl: 1.5rem;
+    --font-size-base: 0.75rem;
+    --font-size-small: 0.62rem;
+    --font-size-h1: 1.6rem;
+    --font-size-button: 0.8rem;
+    --font-size-code: 0.7rem;
+}
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--color-bg-body);
+    margin: 0;
+    padding: 20px 20px 30vh;
+    color: var(--color-text-body);
+}
+h1 {
+    font-size: var(--font-size-h1);
+    font-weight: 500;
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--color-primary);
+}
+.logo-container {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    perspective: 220px;
+    width: 100px;
+    z-index: 1000;
+    transition: all 200ms;
+}
+#logo {
+    display: block;
+    width: 100%;
+    transition: opacity 0.3s ease;
+    transform-origin: center center;
+    animation: flipOver 7s ease-in-out infinite;
+    animation-delay: -4s;
+}
+#logo.logo-hidden {
+    opacity: 0.2;
+    pointer-events: none;
+    animation: none;
+}
+@keyframes flipOver {
+    0% { transform: rotateX(0deg); }
+    85% { transform: rotateX(0deg); }
+    95% { transform: rotateX(390deg); }
+    100% { transform: rotateX(360deg); }
+}
+@keyframes blinkBorder {
+    0% { box-shadow: 0 0 0 0 #eec247; }
+    50% { box-shadow: 0 0 4px 4px #eec247; }
+    100% { box-shadow: 0 0 0 0 #eec247; }
+}
+.blink-box {
+    animation: blinkBorder 0.5s ease-in-out 3;
+    box-shadow: 0 0 0 2px #3498db;
+    border-radius: 12px;
+}
+.message {
+    padding: 0.8rem var(--spacing-lg);
+    border-radius: var(--radius-code);
+    margin: var(--spacing-lg) 0;
+    font-weight: 500;
+    box-shadow: var(--shadow-default);
+}
+.success {
+    background: var(--color-success-bg);
+    border-left: 5px solid #2ecc71;
+    color: var(--color-success-text);
+}
+.error {
+    background: var(--color-error-bg);
+    border-left: 5px solid #e74c3c;
+    color: var(--color-error-text);
+}
+button, .btn {
+    background: var(--color-button-bg);
+    border: 1px solid var(--color-border-button);
+    border-radius: var(--radius-button);
+    padding: 0.4rem var(--spacing-lg);
+    font-size: var(--font-size-button);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-default);
+}
+button:hover, .btn:hover {
+    background: var(--color-button-hover-bg);
+    border-color: var(--color-button-hover-border);
+    box-shadow: var(--shadow-hover);
+}
+.btn.primary {
+    background: var(--color-primary);
+    color: white;
+    border: none;
+}
+.btn.primary:hover {
+    background: #1e2b38;
+}
+select, input, textarea {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-input);
+    border-radius: var(--radius-input);
+    padding: 0.45rem 0.6rem;
+    font-size: var(--font-size-base);
+
+    box-shadow: 1px 1px 3px rgba(0,0,0,.06);
+}
+textarea {
+    width: 100%;
+    resize: vertical;
+        font-family: monospace;
+}
+.code-block, pre {
+    background: var(--color-bg-code);
+    padding: 0.8rem;
+    border-radius: var(--radius-code);
+    font-family: 'Courier New', monospace;
+    font-size: var(--font-size-code);
+    overflow-x: auto;
+    white-space: pre-wrap;
+}

@@ -1,0 +1,56 @@
+{{LAST_YEAR}} [INFO] Application started in production mode
+{{DAYS_AGO:50}} [PHP Fatal error:  Uncaught Error: Call to a member function prepare() on null in /var/www/db.php:33]
+{{DAYS_AGO:45}} [core:alert] [client 192.168.1.250] mod_security: Access denied with code 406 (phase 2). Operator GE matched 5 at REQUEST_HEADERS:User-Agent.
+{{DAYS_AGO:40}} [custom] [JSON] {"level":"error","message":"Cannot parse request body","time":"{{TODAY}}","ip":"10.0.0.1"}
+{{DAYS_AGO:35}} [performance:warn] Query 'SELECT * FROM huge_table' returned 500k rows, causing memory usage spike
+{{DAYS_AGO:30}} [security:info] User 'admin' logged in from 198.51.100.77 using two-factor auth
+{{DAYS_AGO:25}} [sql:error] Duplicate entry '12345' for key 'PRIMARY' in query INSERT INTO users (id, name) VALUES (12345, 'test')
+{{DAYS_AGO:22}} [PHP Stack trace in single line: #0 /var/www/a.php(10) foo(), #1 /var/www/b.php(20) bar(), #2 /var/www/index.php(5) include()]
+{{DAYS_AGO:20}} [Notice] [core] AH00170: caught SIGWINCH, shutting down gracefully
+{{DAYS_AGO:19}} [CRITICAL] [client 10.0.0.9] Possible CSRF attack detected: token mismatch
+{{DAYS_AGO:18}} [DEBUG] [pid 5678] Slow PHP execution: 5.2 seconds for /var/www/slow.php
+{{DAYS_AGO:17}} [php:warn] PHP Warning:  fsockopen(): unable to connect to localhost:8080 (Connection refused) in /var/www/socket.php on line 7
+{{DAYS_AGO:16}} [ERROR] [client 203.0.113.42] script not found or unable to stat: /var/www/cgi-bin/php
+{{DAYS_AGO:15}} [INFO] [mpm_event:notice] AH00489: Apache/2.4.52 (Ubuntu) configured -- resuming normal operations
+{{DAYS_AGO:14}} [php:error] [client 192.168.1.200] PHP Fatal error:  Uncaught TypeError: array_merge(): Argument #1 must be of type array, null given in /var/www/merge.php:22
+Stack trace:
+#0 /var/www/merge.php(22): array_merge()
+#1 /var/www/index.php(8): include()
+#2 {main}
+  thrown in /var/www/merge.php on line 22
+{{DAYS_AGO:13}} [core:notice] [client 127.0.0.1] AH00094: Command line: '/usr/sbin/apache2'
+{{DAYS_AGO:12}} [FATAL] Could not allocate memory for pool
+{{DAYS_AGO:10}} #0 /var/www/vendor/doctrine/dbal/lib/Doctrine/DBAL/Driver/PDOConnection.php(43): PDO->__construct()
+#1 /var/www/vendor/doctrine/dbal/lib/Doctrine/DBAL/Driver/PDOMySql/Driver.php(47): Doctrine\DBAL\Driver\PDOMySql\Driver->connect()
+#2 /var/www/vendor/doctrine/dbal/lib/Doctrine/DBAL/Connection.php(110): Doctrine\DBAL\Driver\PDOMySql\Driver->connect()
+#3 /var/www/src/EntityManager.php(67): Doctrine\DBAL\Connection->connect()
+#4 /var/www/index.php(15): require_once()
+#5 {main}
+{{DAYS_AGO:9}} [2025-03-17 12:00:00] app.ERROR: Uncaught exception Doctrine\DBAL\Exception\ConnectionException
+{{DAYS_AGO:8}} [Wed Mar 16 11:22:33 2025] [error] [client 10.0.0.7] File does not exist: /var/www/secret
+{{DAYS_AGO:7}} 2025-03-15T10:30:00Z [DEBUG] ISO format log line
+{{DAYS_AGO:6}} [PHP Warning: session_start(): Failed to read session data: user (path: /var/lib/php/sessions) in /var/www/session.php on line 5]
+{{DAYS_AGO:6}} [PHP Notice: Undefined variable: _SESSION in /var/www/session.php on line 12]
+{{DAYS_AGO:5}} [ERROR] [child 12345] exited with status 255
+{{DAYS_AGO:5}} [INFO] [child 12345] Started process
+{{DAYS_AGO:4}} [WARN] [client 192.168.1.99] ModSecurity: Access denied with code 403 (phase 2). Pattern match ".*" at REQUEST_URI.
+{{DAYS_AGO:3}} [ERROR] Uncaught PDOException: SQLSTATE[HY000] [2002] Connection refused in /var/www/db.php:78
+Stack trace:
+#0 /var/www/db.php(78): PDO->__construct()
+#1 /var/www/model.php(45): Database::connect()
+#2 /var/www/controller.php(12): Model->fetch()
+#3 /var/www/index.php(5): Controller->handle()
+#4 {main}
+{{DAYS_AGO:2}} [DEBUG] Long multiline stacktrace:
+  at /var/www/vendor/core.php:456
+  at /var/www/vendor/helper.php:789
+  at /var/www/index.php:12
+  at /var/www/vendor/event.php:234
+  at /var/www/vendor/dispatcher.php:567
+  at /var/www/index.php:42
+{{YESTERDAY}} [custom] Something completely different
+{{APACHE_TODAY}} [php:error] [client 10.0.0.2] PHP Parse error: syntax error, unexpected '}' in /var/www/crazy.php on line 99
+Stack trace:
+#0 /var/www/crazy.php(99): unknown()
+#1 /var/www/index.php(20): require_once()
+#2 {main}

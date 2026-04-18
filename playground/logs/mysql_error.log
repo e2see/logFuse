@@ -1,0 +1,27 @@
+{{LAST_YEAR}} 0 [Note] InnoDB: First start of innodb, continuing after purge.
+{{DAYS_AGO:50}} 0 [ERROR] InnoDB: Unable to lock ./ibdata1 error: 11
+{{DAYS_AGO:40}} 0 [Warning] 'user' entry 'root'@'%' ignored in --skip-name-resolve mode.
+{{DAYS_AGO:35}} 0 [Note] Server hostname (bind-address): '0.0.0.0'; port: 3306
+{{DAYS_AGO:30}} 0 [ERROR] /usr/sbin/mysqld: Table './db/bigtable' is marked as crashed and last (automatic?) repair failed
+{{DAYS_AGO:28}} 0 [Note] InnoDB: Transaction 41234 started in READ WRITE mode.
+{{DAYS_AGO:25}} 0 [Warning] InnoDB: Resizing redo log from 2*3072 to 2*4096 pages
+{{DAYS_AGO:22}} 0 [ERROR] InnoDB: Missing MLOG_CHECKPOINT at 4123456 between the checkpoint 4123400 and the end 4123500.
+{{DAYS_AGO:20}} 0 [Note] InnoDB: Removed temporary tablespace file './ibtmp1'
+{{DAYS_AGO:19}} 0 [Warning] Slave SQL: Could not execute Update_rows event on table db.tbl; Can't find record in 'tbl', Error_code: 1032
+{{DAYS_AGO:18}} 0 [ERROR] mysqld: Table './db/table' is marked as crashed and should be repaired
+{{DAYS_AGO:17}} 0 [Note] InnoDB: 128 rollback segments are active.
+{{DAYS_AGO:15}} 0 [Warning] InnoDB: Cannot open table test/unknown from the internal data dictionary of InnoDB though the .frm file exists.
+{{DAYS_AGO:14}} 0 [ERROR] Native table 'performance_schema'.'events_waits_current' has the wrong structure
+{{DAYS_AGO:12}} 0 [Note] Event Scheduler: Loaded 0 events
+{{DAYS_AGO:10}} 0 [Warning] Access denied for user 'unauth'@'192.168.1.100' (using password: YES)
+{{DAYS_AGO:9}} 0 [ERROR] InnoDB: Page [page id: space=0, page number=123] still has an invalid LSN
+{{DAYS_AGO:8}} 0 [Note] InnoDB: Crash recovery completed.
+{{DAYS_AGO:7}} 0 [Warning] InnoDB: A long semaphore wait: --Thread 140123456789 has waited at dict0dict.cc line 123 for 123.00 seconds
+{{DAYS_AGO:6}} 0 [ERROR] Can't start server: Bind on TCP/IP port. Got error: 98: Address already in use
+{{DAYS_AGO:5}} 0 [Note] Server socket created on IP: '::'.
+{{DAYS_AGO:4}} 0 [Warning] InnoDB: Difficult to find free blocks in the buffer pool (1340 search iterations)! Consider increasing innodb_buffer_pool_size
+{{DAYS_AGO:3}} 0 [ERROR] Can't open and lock privilege tables: Table 'mysql.user' doesn't exist
+{{DAYS_AGO:2}} 0 [Note] InnoDB: Waiting for purge to start
+{{DAYS_AGO:1}} 0 [Warning] Aborted connection 123 to db: 'test' user: 'root' host: 'localhost' (Got timeout reading communication packets)
+{{YESTERDAY}} 0 [ERROR] InnoDB: Database page corruption detected
+{{TODAY}} 0 [Note] InnoDB: Uses event mutexes
