@@ -18,20 +18,28 @@ You can:
    • See the parsed output instantly
 
 ┌───────────────────────────────────────────────────────────────────────────┐
-│ IMPORTANT NOTE ABOUT PLACEHOLDERS                                         │
+│ IMPORTANT NOTE ABOUT MAGIC DATES                                          │
 └───────────────────────────────────────────────────────────────────────────┘
 
-The sample log files contain special placeholders like:
-   {{TODAY}}, {{YESTERDAY}}, {{DAYS_AGO:N}}, {{LAST_YEAR}},
-   {{APACHE_TODAY}}, {{APACHE_YESTERDAY}}
+The sample log files contain special timestamps like:
 
-These are NOT features of the logFuse class itself.
-They are only used in this playground to keep the example logs
-fresh and relevant – every time you load a file, the placeholders
-are replaced with actual dates.
+   2111-01-01 11:11:00  (becomes today)
+   2111-01-01 11:11:01  (becomes yesterday)
+   2111-01-01 11:11:02  (becomes day before yesterday)
+   ... up to 2111-01-01 11:11:59 (one year ago)
+
+These are NOT a feature of the logFuse class itself. They are only used
+in this playground to keep the demo logs "evergreen" – no matter when you
+run the demo, the output will always show relative terms like "today",
+"yesterday", etc.
+
+If you want to test logFuse with your own log files, simply copy any .log
+file (with real timestamps) into the logs/ folder. The playground will
+process them without any magic replacement – you will see the real dates
+as they are. The magic dates are only there to make the pre‑installed
+samples never look outdated.
 
 The real logFuse class works with real timestamps only.
-
 
 ┌───────────────────────────────────────────────────────────────────────────┐
 │ QUICK START                                                               │
@@ -49,17 +57,15 @@ The real logFuse class works with real timestamps only.
    4. Experiment
       Change output format, theme, language, order, pagination
 
-
 ┌───────────────────────────────────────────────────────────────────────────┐
 │ SAMPLE LOG FILES (included)                                               │
 └───────────────────────────────────────────────────────────────────────────┘
 
-   logs/apache_error.log   – Apache error log with placeholders
+   logs/apache_error.log   – Apache error log with magic dates
    logs/php_error.log      – PHP error log with stack traces
    logs/mysql_error.log    – MySQL/MariaDB server log
    logs/custom_app.log     – Custom application log (bracket style)
    logs/wild.log           – Mixed formats for stress testing
-
 
 ┌───────────────────────────────────────────────────────────────────────────┐
 │ USE YOUR OWN LOG FILES                                                    │
@@ -70,14 +76,16 @@ The real logFuse class works with real timestamps only.
    • No need to restart or change any code
    • The file must have a .log extension
 
-All placeholders are replaced dynamically when you select a file.
-
+If you want to use the magic date trick, put timestamps like
+"2111-01-01 11:11:XX" in your logs – the playground will replace
+them with relative dates in the HTML output. But for normal use,
+just use real timestamps – logFuse will parse them as they are.
 
 ┌───────────────────────────────────────────────────────────────────────────┐
 │ WHAT THE PLAYGROUND SHOWS                                                 │
 └───────────────────────────────────────────────────────────────────────────┘
 
-   Left pane:   Raw log content (read-only, with placeholders replaced)
+   Left pane:   Raw log content (read-only, with magic dates visible)
    Right pane:  Parsed output – either:
                 • HTML: coloured, themed, with stack traces and file info
                 • JSON: structured data ready for APIs or databases
@@ -98,7 +106,6 @@ All placeholders are replaced dynamically when you select a file.
 
 Full documentation is in src/logFuse.php (class DocBlock).
 
-
 ┌───────────────────────────────────────────────────────────────────────────┐
 │ TROUBLESHOOTING                                                           │
 └───────────────────────────────────────────────────────────────────────────┘
@@ -111,10 +118,10 @@ Full documentation is in src/logFuse.php (class DocBlock).
      Check that the log format is supported – or add your own regex pattern
      with addPattern().
 
-   • Placeholders not replaced?
-     The replacement happens in index.php, not in the class. If you edit the
-     sample files, keep the {{...}} syntax exactly as shown.
-
+   • Magic dates not replaced?
+     The replacement happens in the HTML output after logFuse has parsed.
+     If you see "1. Jan 2111" instead of "today", verify that the seconds
+     (XX) match the expected offsets (00=today, 01=yesterday, etc.).
 
 ┌───────────────────────────────────────────────────────────────────────────┐
 │ LICENSE                                                                   │

@@ -16,15 +16,15 @@
 @media (min-width: 1600px) {
     body { padding: 40px 40px 30vh; }
 }
-@media (min-width: 1600px) and (min-height: 1000px) {
-    .logo-container { width: 140px; }
+@media (min-width: 1600px) and (min-height: 800px) {
+    .logo-container { perspective: 170px;width: 120px; }
 }
 @media (min-width: 1800px) {
     body { padding-left: 5vw; padding-right: 5vw; }
 }
 @media (min-width: 2200px) {
     body { padding-left: 10vw; padding-right: 10vw; }
-    .logo-container { width: 180px; }
+    .logo-container { perspective: 200px; width: 140px; }
 }
 @media (min-width: 2600px) {
     body { padding-left: 15vw; padding-right: 15vw; }

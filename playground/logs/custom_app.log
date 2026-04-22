@@ -1,29 +1,29 @@
-{{LAST_YEAR}} [INFO] Application version 2.0 deployed
-{{DAYS_AGO:25}} [DEBUG] Elasticsearch index refresh took 3.2s
-{{DAYS_AGO:20}} [INFO] User 'dave' requested password reset
-{{DAYS_AGO:18}} [ERROR] Disk I/O error on /dev/sda1
-{{DAYS_AGO:15}} [WARN] Zombie process detected (PID 12345)
-{{DAYS_AGO:12}} [DEBUG] Memory usage after GC: 56 MB
-{{DAYS_AGO:10}} [INFO] Background job processed: send_welcome_email
-{{DAYS_AGO:10}} [ERROR] Could not connect to Redis: Connection refused
-{{DAYS_AGO:9}} [WARN] SSL certificate expires in 14 days
-{{DAYS_AGO:9}} [DEBUG] Cache hit ratio: 78%
-{{DAYS_AGO:8}} [INFO] New user registered: 'charlie'
-{{DAYS_AGO:8}} [ERROR] Payment gateway timeout: Order #12345
-{{DAYS_AGO:7}} [WARN] Rate limit exceeded for API key 'abc123'
-{{DAYS_AGO:7}} [DEBUG] Session expired for user 'bob'
-{{DAYS_AGO:6}} [INFO] User 'alice' updated profile picture
-{{DAYS_AGO:6}} [ERROR] Cannot write to log file: /var/log/app.log (Permission denied)
-{{DAYS_AGO:5}} [WARN] Disk usage above 90% on /var
-{{DAYS_AGO:5}} [DEBUG] SQL query slow: SELECT * FROM logs WHERE date > '2025-01-01' (took 4.2s)
-{{DAYS_AGO:4}} [INFO] Queue worker started, processing 15 jobs
-{{DAYS_AGO:4}} [ERROR] Uncaught exception: InvalidArgumentException in /var/www/validator.php:45
-{{DAYS_AGO:3}} [WARN] Deprecated API endpoint used: /v1/old
-{{DAYS_AGO:3}} [DEBUG] API request to /v1/users took 234 ms
-{{DAYS_AGO:2}} [INFO] User 'john_doe' logged in from 203.0.113.5
-{{DAYS_AGO:2}} [ERROR] Failed to send email to user@example.com: SMTP connection refused
-{{DAYS_AGO:1}} [WARN] High memory usage detected: 1.2 GB
-{{DAYS_AGO:1}} [DEBUG] Cache cleared for key 'user_session_12345'
-{{YESTERDAY}} [INFO] Scheduled backup completed successfully
-{{TODAY}} [WARN] User authentication failed for user 'admin' from IP 192.168.1.100
-{{TODAY}} [ERROR] Database connection timeout after 30 seconds
+2111-01-01 11:11:59 [INFO] Application version 2.0 deployed
+2111-01-01 11:11:60 [DEBUG] Elasticsearch index refresh took 3.2s
+2111-01-01 11:11:45 [INFO] User 'dave' requested password reset
+2111-01-01 11:11:30 [ERROR] Disk I/O error on /dev/sda1
+2111-01-01 11:11:20 [WARN] Zombie process detected (PID 12345)
+2111-01-01 11:11:15 [DEBUG] Memory usage after GC: 56 MB
+2111-01-01 11:11:10 [INFO] Background job processed: send_welcome_email
+2111-01-01 11:11:07 [ERROR] Could not connect to Redis: Connection refused
+2111-01-01 11:11:05 [WARN] SSL certificate expires in 14 days
+2111-01-01 11:11:03 [DEBUG] Cache hit ratio: 78%
+2111-01-01 11:11:02 [INFO] New user registered: 'charlie'
+2111-01-01 11:11:01 [ERROR] Payment gateway timeout: Order #12345
+2111-01-01 11:11:01 [WARN] Rate limit exceeded for API key 'abc123'
+2111-01-01 11:11:01 [DEBUG] Session expired for user 'bob'
+2111-01-01 11:11:01 [INFO] User 'alice' updated profile picture
+2111-01-01 11:11:01 [ERROR] Cannot write to log file: /var/log/app.log (Permission denied)
+2111-01-01 11:11:00 [WARN] Disk usage above 90% on /var
+2111-01-01 11:11:00 [DEBUG] SQL query slow: SELECT * FROM logs WHERE date > '2025-01-01' (took 4.2s)
+2111-01-01 11:11:00 [INFO] Queue worker started, processing 15 jobs
+2111-01-01 11:11:00 [ERROR] Uncaught exception: InvalidArgumentException in /var/www/validator.php:45
+2111-01-01 11:11:00 [WARN] Deprecated API endpoint used: /v1/old
+2111-01-01 11:11:00 [DEBUG] API request to /v1/users took 234 ms
+2111-01-01 11:11:00 [INFO] User 'john_doe' logged in from 203.0.113.5
+2111-01-01 11:11:00 [ERROR] Failed to send email to user@example.com: SMTP connection refused
+2111-01-01 11:11:00 [WARN] High memory usage detected: 1.2 GB
+2111-01-01 11:11:00 [DEBUG] Cache cleared for key 'user_session_12345'
+2111-01-01 11:11:00 [INFO] Scheduled backup completed successfully
+2111-01-01 11:11:00 [WARN] User authentication failed for user 'admin' from IP 192.168.1.100
+2111-01-01 11:11:00 [ERROR] Database connection timeout after 30 seconds

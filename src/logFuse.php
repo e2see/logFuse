@@ -15,79 +15,113 @@ namespace e2;
  *
  * FEATURES
  * --------
- * - Automatic grouping of multi‑line log entries (stack traces, exceptions)
+ * - Automatic grouping of multi-line log entries (stack traces, exceptions)
  * - Extracts datetime, log level, message, file name, line number, and stack trace
  * - Supports pagination, sorting (asc/desc), and limiting the number of entries
  * - Output formats: HTML (with multiple themes) or JSON
- * - Fluent interface for chaining method calls
+ * - Fluent interface for chaining method calls (all methods return $this)
  * - Debug mode to log parsing steps
- * - Custom pattern injection (regex must include named subpatterns)
- * - Multi‑language date formatting (en, de, tr)
+ * - Custom pattern injection
+ * - Multi-language date formatting (en, de, tr)
+ * - Unified access to tabular data sources (CSV, SQLite, MySQL, arrays) via addTabularSource()
+ * - LAZY LOADING: all sources are read only when getOutput() is called
+ * - SECURE database access: uses LIMIT/OFFSET from pagination, no unsafe SQL fragments
+ * - CONFIGURABLE TIMEZONE for parsing date strings without timezone information
+ *
+ * ERROR HANDLING
+ * --------------
+ * By default, errors are collected internally and can be retrieved via getErrors().
+ * Set 'throwExceptions' => true in constructor to throw InvalidArgumentException instead.
+ * Fluent methods always return $this, even on error.
  *
  * USAGE EXAMPLE
  * -------------
- * $log = new logFuse(['throwExceptions' => false, 'debug' => true]);
- * $log->addFile('/path/to/error.log')
- *     ->setPagination(1, 50)
- *     ->setOrder('desc')
- *     ->setMaxEntries(1000)
- *     ->setLanguage('en');
+ * $log = new logFuse(['debug' => false, 'timezone' => 'UTC']);
+ * $log->addFile('/path/to/error.log');
+ * $log->addTabularSource('sqlite:/var/log/guard.sqlite:rate_limit', null);
+ * $log->setPagination(1, 50);
+ * $log->setOrder('desc');
  *
- * $total = $log->getTotalEntryCount();
- * $entries = $log->getEntries();          // raw entries after pagination
- * $parsed = $log->getRawData();            // structured array of parsed entries
- *
- * echo $log->getOutput('html');            // rendered HTML list
- * echo $log->getOutput('json');            // JSON representation
- *
- * echo logFuse::getCss('dark');            // CSS for HTML output
- *
- * CUSTOM PATTERN
- * --------------
- * $log->addPattern('myapp', '/^\[(?P<datetime>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] (?P<level>\w+) (?P<message>.*)$/');
- *
- * STACK TRACE PARSING
- * -------------------
- * Lines following a stack trace header are parsed into numbered entries with file,
- * line number, and call information. The parsed stack trace is included in the output.
+ * if ($log->getErrors()) {
+ *     echo "Errors: " . implode(', ', $log->getErrors());
+ * } else {
+ *     echo $log->getOutput('html');
+ * }
  *
  * ============================================================
  */
 
 class logFuse
 {
-    // ------------------------------------------------------------------
-    // PROPERTIES
-    // ------------------------------------------------------------------
-    private array $rawLines      = [];
-    private array $entries       = [];
-    private array $parsedEntries = [];
-    private string $language     = 'en';
-    private array $parseCache    = [];
-    private ?int $maxEntries     = null;
-    private string $order        = 'desc';
-    private int $pageNumber      = 1;
-    private int $pageSize        = 0;
-    private bool $dirty          = true;
-    private bool $throwExceptions;
-    private bool $debug;
-    private array $errors   = [];
-    private array $debugLog = [];
-    private array $userPatterns = [];   // benutzerdefinierte Patterns
+
+    ########################### PROPERTIES
+
+    private array $rawLines         = [];
+    private array $entries          = [];
+    private array $parsedEntries    = [];
+    private string $language        = 'en';
+    private array $parseCache       = [];
+    private ?int $maxEntries        = null;
+    private string $order           = 'desc';
+    private int $pageNumber         = 1;
+    private int $pageSize           = 0;
+    private bool $dirty             = true;
+    private bool $debug             = false;
+    private array $errors           = [];
+    private array $debugLog         = [];
+    private array $userPatterns     = [];
+    private array $sourceLoaders    = [];
+    private string $defaultTimezone = 'UTC';
+    private bool $throwExceptions   = false;
 
 
 
     ########################### CONSTRUCTOR & OPTIONS
 
 
-
-    ##### Constructor: Initializes the parser with optional settings.
+    ##### CONSTRUCTOR: INITIALIZES THE PARSER WITH OPTIONAL SETTINGS.
 
     public function __construct(array $options = [])
     {
-        //-- Store exception and debug flags
-        $this->throwExceptions = $options['throwExceptions'] ?? true;
-        $this->debug = $options['debug'] ?? false;
+        $this->debug           = $options['debug']           ?? false;
+        $this->throwExceptions = $options['throwExceptions'] ?? false;
+
+        if (isset($options['timezone'])) {
+            $this->defaultTimezone = $options['timezone'];
+        }
+
+        //-- Validate unknown options
+        $allowed = ['debug', 'timezone', 'throwExceptions'];
+        foreach ($options as $key => $value) {
+            if (!in_array($key, $allowed, true)) {
+                $this->handleError("Unknown option '$key'");
+            }
+        }
+    }
+
+
+
+    ########################### ERROR HANDLING
+
+
+    ##### HANDLES ERRORS: THROWS EXCEPTION OR COLLECTS ERROR MESSAGE.
+    //  ALWAYS RETURNS $this TO MAINTAIN FLUENT INTERFACE
+
+    private function handleError(string $message): self
+    {
+        if ($this->throwExceptions) {
+            throw new \InvalidArgumentException($message);
+        }
+        $this->errors[] = $message;
+        return $this;
+    }
+
+
+    ##### RETURNS COLLECTED ERRORS.
+
+    public function getErrors(): array
+    {
+        return $this->errors;
     }
 
 
@@ -95,40 +129,36 @@ class logFuse
     ########################### PUBLIC API (FLUENT INTERFACE)
 
 
-
-    ##### Adds a log file by path, reads content and stores lines.
+    ##### ADDS A LOG FILE BY PATH (LAZY – READ ON REBUILD).
 
     public function addFile(string $filePath): self
     {
-        //-- Check readability before reading
         if (!is_readable($filePath)) {
             return $this->handleError('Log file not readable: ' . $filePath);
         }
-        $content = file_get_contents($filePath);
-        if ($content === false) {
-            return $this->handleError('Failed to read log file: ' . $filePath);
-        }
-        return $this->addFileContent($content);
-    }
-
-
-
-    ##### Adds raw log content (e.g., from a string) and splits into lines.
-
-    public function addFileContent(string $content): self
-    {
-        $lines = explode("\n", $content);
-        foreach ($lines as $line) {
-            //-- Normalize line endings to Unix style
-            $this->rawLines[] = $this->normalizeLineEndings($line);
-        }
+        $this->sourceLoaders[] = function () use ($filePath) {
+            return $this->readFileLinesWithLimit($filePath);
+        };
         $this->dirty = true;
         return $this;
     }
 
 
+    ##### ADDS RAW LOG CONTENT (LAZY).
 
-    ##### Sets pagination parameters (1‑based page number, page size).
+    public function addFileContent(string $content): self
+    {
+        $this->sourceLoaders[] = function () use ($content) {
+            $lines = explode("\n", $this->normalizeLineEndings($content));
+            $limit = $this->getEffectiveRowLimit();
+            return $limit ? array_slice($lines, 0, $limit) : $lines;
+        };
+        $this->dirty = true;
+        return $this;
+    }
+
+
+    ##### SETS PAGINATION PARAMETERS (1‑BASED PAGE NUMBER, PAGE SIZE).
 
     public function setPagination(int $pageNumber, int $pageSize): self
     {
@@ -139,14 +169,13 @@ class logFuse
             return $this->handleError('Page size must be >= 0, got ' . $pageSize);
         }
         $this->pageNumber = $pageNumber;
-        $this->pageSize = $pageSize;
-        $this->dirty = true;
+        $this->pageSize   = $pageSize;
+        $this->dirty      = true;
         return $this;
     }
 
 
-
-    ##### Sets the order of entries ('asc' or 'desc').
+    ##### SETS THE ORDER OF ENTRIES ('ASC' OR 'DESC').
 
     public function setOrder(string $order): self
     {
@@ -160,8 +189,7 @@ class logFuse
     }
 
 
-
-    ##### Sets maximum number of entries to keep (null = no limit).
+    ##### SETS MAXIMUM NUMBER OF ENTRIES TO KEEP (NULL = NO LIMIT).
 
     public function setMaxEntries(?int $maxEntries): self
     {
@@ -169,13 +197,12 @@ class logFuse
             return $this->handleError('Max entries must be >= 1 or null, got ' . $maxEntries);
         }
         $this->maxEntries = $maxEntries;
-        $this->dirty = true;
+        $this->dirty      = true;
         return $this;
     }
 
 
-
-    ##### Sets language for date formatting (en, de, tr).
+    ##### SETS LANGUAGE FOR DATE FORMATTING (EN, DE, TR).
 
     public function setLanguage(string $lang): self
     {
@@ -186,8 +213,16 @@ class logFuse
     }
 
 
+    ##### SETS DEFAULT TIMEZONE FOR PARSING DATE STRINGS.
 
-    ##### Returns total number of entries after grouping (ignores pagination).
+    public function setDefaultTimezone(string $tz): self
+    {
+        $this->defaultTimezone = $tz;
+        return $this;
+    }
+
+
+    ##### RETURNS TOTAL NUMBER OF ENTRIES AFTER GROUPING (IGNORES PAGINATION).
 
     public function getTotalEntryCount(): int
     {
@@ -196,8 +231,7 @@ class logFuse
     }
 
 
-
-    ##### Returns the raw entry texts (after grouping and pagination).
+    ##### RETURNS THE RAW ENTRY TEXTS (AFTER GROUPING AND PAGINATION).
 
     public function getEntries(): array
     {
@@ -206,8 +240,7 @@ class logFuse
     }
 
 
-
-    ##### Returns structured parsed data for each entry (datetime, level, message, etc.).
+    ##### RETURNS STRUCTURED PARSED DATA FOR EACH ENTRY (DATETIME, LEVEL, MESSAGE, ETC.).
 
     public function getRawData(): array
     {
@@ -216,25 +249,27 @@ class logFuse
     }
 
 
+    ##### RENDERS OUTPUT IN 'HTML' OR 'JSON' FORMAT.
 
-    ##### Renders output in 'html' or 'json' format.
-
-    public function getOutput(string $format): string
+    public function getOutput(string $format): string|false
     {
         $this->rebuildIfDirty();
 
-        //-- If errors occurred, show them instead of empty list
         if (!empty($this->errors)) {
-            return $this->formatErrors($format);
+            return false;
         }
 
         $output = match ($format) {
             'html' => '<ul class="lf-list">' . $this->renderAll() . '</ul>',
             'json' => json_encode($this->parsedEntries, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
-            default => throw new \InvalidArgumentException('Unsupported format: ' . $format),
+            default => $this->handleError('Unsupported format: ' . $format),
         };
 
-        //-- Append debug information if enabled
+        if ($output === false) {
+            return false;
+        }
+
+        //-- Append debug information if debug mode is enabled
         if ($this->debug && !empty($this->debugLog)) {
             $debugStr = "DEBUG LOG:\n" . implode("\n", $this->debugLog);
             if ($format === 'html') {
@@ -250,8 +285,7 @@ class logFuse
     }
 
 
-
-    ##### Returns CSS styles for HTML output (supports multiple themes).
+    ##### RETURNS CSS STYLES FOR HTML OUTPUT (SUPPORTS MULTIPLE THEMES).
 
     public static function getCss(string $theme = 'peachy'): string
     {
@@ -450,7 +484,6 @@ class logFuse
                 margin-bottom: 4px;
                 padding: 2px 0;
             }
-
             .lf-stack-number {
                 font-weight: var(--lf-stack-number-weight);
                 margin-right: 12px;
@@ -469,12 +502,55 @@ class logFuse
     }
 
 
+    ##### UNIFIED ACCESS TO TABULAR DATA SOURCES (CSV, SQLITE, MYSQL, ARRAYS).
+
+    public function addTabularSource(string $source, $mapping = null, array $options = []): self
+    {
+        //-- CSV file (detected by .csv extension)
+        if (preg_match('/\.csv$/i', $source) && is_file($source)) {
+            return $this->addCsvSource($source, $mapping, $options);
+        }
+
+        //-- Database source (format: "dsn:table")
+        $colonPos = strrpos($source, ':');
+        if ($colonPos !== false) {
+            $dsn   = substr($source, 0, $colonPos);
+            $table = substr($source, $colonPos + 1);
+            if (!empty($dsn) && !empty($table)) {
+                $this->addDatabaseSourceLazy($dsn, $table, $mapping, $options);
+                return $this;
+            }
+        }
+
+        return $this->handleError('Invalid source format. Expected CSV file path (.csv) or "dsn:table" for databases.');
+    }
+
+
+    ##### ADDS TABULAR DATA (ARRAY OR ITERATOR) AS LOG SOURCE (LAZY).
+
+    public function addTabularData(iterable $rows, callable $rowFormatter): self
+    {
+        $this->sourceLoaders[] = function () use ($rows, $rowFormatter) {
+            $lines = [];
+            $limit = $this->getEffectiveRowLimit();
+            $count = 0;
+            foreach ($rows as $row) {
+                if ($limit !== null && $count >= $limit) break;
+                $lines[] = $this->normalizeLineEndings($rowFormatter($row));
+                $count++;
+            }
+            return $lines;
+        };
+        $this->dirty = true;
+        return $this;
+    }
+
+
 
     ########################### DEBUG METHODS
 
 
-
-    ##### Adds a debug message to the internal log (only if debug mode is enabled).
+    ##### ADDS A DEBUG MESSAGE TO THE INTERNAL LOG (ONLY IF DEBUG MODE IS ENABLED).
 
     public function addDebug(string $message): self
     {
@@ -485,8 +561,7 @@ class logFuse
     }
 
 
-
-    ##### Outputs the collected debug log (either to error_log or as HTML).
+    ##### OUTPUTS THE COLLECTED DEBUG LOG (EITHER TO ERROR_LOG OR AS HTML).
 
     public function getDebug(string $mode = 'output'): void
     {
@@ -506,8 +581,7 @@ class logFuse
     ########################### PATTERN MANAGEMENT
 
 
-
-    ##### Adds a custom regex pattern that is tested before built‑in patterns.
+    ##### ADDS A CUSTOM REGEX PATTERN THAT IS TESTED BEFORE BUILT‑IN PATTERNS.
 
     public function addPattern(string $name, string $regex): self
     {
@@ -521,8 +595,7 @@ class logFuse
     ########################### INTERNAL RENDERING
 
 
-
-    ##### Renders all parsed entries into HTML.
+    ##### RENDERS ALL PARSED ENTRIES INTO HTML LIST ITEMS.
 
     private function renderAll(): string
     {
@@ -534,8 +607,7 @@ class logFuse
     }
 
 
-
-    ##### Renders a single parsed entry as HTML <li> element.
+    ##### RENDERS A SINGLE PARSED ENTRY AS HTML.
 
     private function renderParsedEntry(array $parsed): string
     {
@@ -546,7 +618,7 @@ class logFuse
         $lineNo     = $parsed['line'];
         $stacktrace = $parsed['stacktrace'];
 
-        //-- Determine CSS class based on severity
+        //-- Determine CSS class based on log level
         $levelClass = match (strtolower($level)) {
             'fatal error', 'error', 'emerg' => 'error',
             default => 'info',
@@ -620,11 +692,10 @@ class logFuse
 
 
 
-    ########################### REBUILD LOGIC
+    ########################### REBUILD LOGIC (LAZY)
 
 
-
-    ##### Rebuilds entries and parsed data if the dirty flag is set.
+    ##### REBUILDS ENTRIES AND PARSED DATA ONLY IF THE DIRTY FLAG IS SET.
 
     private function rebuildIfDirty(): void
     {
@@ -636,26 +707,36 @@ class logFuse
     }
 
 
-
-    ##### Performs the full rebuild: grouping, ordering, limiting, pagination, parsing.
+    ##### MAIN REBUILD: LOADS ALL LAZY SOURCES, GROUPS, APPLIES SORTING/LIMITS/PAGINATION, THEN PARSES.
 
     private function rebuild(): void
     {
-        //-- Group raw lines into multi‑line entries
+        //-- 1) Load all pending source loaders into rawLines
+        $allRawLines = [];
+        foreach ($this->sourceLoaders as $loader) {
+            $lines = $loader();
+            foreach ($lines as $line) {
+                $allRawLines[] = $line;
+            }
+        }
+        $this->rawLines = $allRawLines;
+        $this->sourceLoaders = [];
+
+        //-- 2) Group raw lines into multi-line entries
         $allEntries = $this->groupRawLines($this->rawLines);
 
-        //-- Apply order
+        //-- 3) Apply sorting (descending = reverse order)
         if ($this->order === 'desc') {
             $allEntries = array_reverse($allEntries);
         }
 
-        //-- Apply max entries limit
+        //-- 4) Apply max entries limit
         if ($this->maxEntries !== null && $this->maxEntries > 0) {
             $allEntries = array_slice($allEntries, 0, $this->maxEntries);
         }
 
+        //-- 5) Apply pagination
         $total = count($allEntries);
-        //-- Apply pagination
         if ($this->pageSize > 0) {
             $offset = ($this->pageNumber - 1) * $this->pageSize;
             if ($offset >= $total) {
@@ -668,7 +749,7 @@ class logFuse
             $this->entries = $allEntries;
         }
 
-        //-- Parse each entry
+        //-- 6) Parse each entry
         $this->parsedEntries = [];
         foreach ($this->entries as $entry) {
             $this->parsedEntries[] = $this->analyze($entry);
@@ -676,16 +757,55 @@ class logFuse
     }
 
 
+    ##### READS A FILE LINE BY LINE AND RESPECTS THE EFFECTIVE ROW LIMIT.
 
-    ##### Groups raw lines into logical entries based on datetime patterns.
+    private function readFileLinesWithLimit(string $filePath): array
+    {
+        $limit = $this->getEffectiveRowLimit();
+        $lines = [];
+        $handle = fopen($filePath, 'r');
+        if (!$handle) {
+            return [];
+        }
+
+        $count = 0;
+        while (($line = fgets($handle)) !== false) {
+            if ($limit !== null && $count >= $limit) {
+                break;
+            }
+            $lines[] = $this->normalizeLineEndings($line);
+            $count++;
+        }
+        fclose($handle);
+        return $lines;
+    }
+
+
+    ##### DETERMINES THE EFFECTIVE ROW LIMIT FOR RAW SOURCES.
+
+    private function getEffectiveRowLimit(): ?int
+    {
+        //-- If pagination is active, use pageSize as limit
+        if ($this->pageSize > 0) {
+            return $this->pageSize;
+        }
+        //-- If maxEntries is set, estimate 5 lines per entry (conservative)
+        if ($this->maxEntries !== null) {
+            return $this->maxEntries * 5;
+        }
+        //-- Default: 10,000 rows
+        return 10000;
+    }
+
+
+    ##### GROUPS RAW LINES INTO MULTI-LINE LOG ENTRIES BASED ON LINE-START PATTERNS.
 
     private function groupRawLines(array $rawLines): array
     {
         $entries = [];
         $current = '';
 
-        //-- Patterns that indicate the start of a new log entry
-        $datePatterns = [
+        $builtinPatterns = [
             '/^\[[A-Za-z]{3} [A-Za-z]{3} \d{2} \d{2}:\d{2}:\d{2}\.\d+ \d{4}\]/',
             '/^\[[A-Za-z]{3} [A-Za-z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4}\]/',
             '/^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]/',
@@ -695,10 +815,12 @@ class logFuse
             '/^[A-Za-z]{3} [A-Za-z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4}/',
         ];
 
+        $allPatterns = array_merge($builtinPatterns, array_values($this->userPatterns));
+
         foreach ($rawLines as $line) {
             $line = $this->normalizeLineEndings($line);
             $isNew = false;
-            foreach ($datePatterns as $pattern) {
+            foreach ($allPatterns as $pattern) {
                 if (preg_match($pattern, $line)) {
                     $isNew = true;
                     break;
@@ -728,8 +850,7 @@ class logFuse
     ########################### HYBRID PARSING
 
 
-
-    ##### Main parsing method: tries patterns, then modular fallback.
+    ##### ANALYZES A SINGLE LOG ENTRY: EXTRACTS DATETIME, LEVEL, MESSAGE, STACKTRACE.
 
     private function analyze(string $entry): array
     {
@@ -755,7 +876,7 @@ class logFuse
             $this->addDebug('REST LINES: ' . (empty($rest) ? '(empty)' : substr($rest, 0, 300)));
         }
 
-        //-- 1) Try user patterns then built‑in patterns
+        //-- 1) Try user patterns then built-in patterns
         $result = $this->tryFullPatterns($firstLine, $rest, $originalFirst);
         if ($result !== null) {
             $this->parseCache[$entry] = $result;
@@ -769,12 +890,10 @@ class logFuse
     }
 
 
-
-    ##### Attempts to match the first line against all registered patterns.
+    ##### ATTEMPTS TO MATCH THE ENTRY AGAINST ALL REGISTERED REGEX PATTERNS.
 
     private function tryFullPatterns(string $firstLine, string $rest, string $originalFirst): ?array
     {
-        //-- Built‑in patterns with named subpatterns
         $builtinPatterns = [
             'apacheUs'            => '/^\[(?P<datetime>[A-Za-z]{3} [A-Za-z]{3} \d{2} \d{2}:\d{2}:\d{2}\.\d+ \d{4})\] \[(?P<module>\w+):(?P<level>\w+)\] (?P<message>.*)$/',
             'apache'              => '/^\[(?P<datetime>[A-Za-z]{3} [A-Za-z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4})\] \[(?P<module>\w+):(?P<level>\w+)\] (?P<message>.*)$/',
@@ -793,11 +912,6 @@ class logFuse
                 $datetime = $m['datetime'] ?? '';
                 $level    = $m['level'] ?? 'app';
                 $message  = $m['message'] ?? '';
-
-                //-- Special handling for bracketDate pattern
-                if ($name === 'bracketDate' && isset($m['level'])) {
-                    $level = $m['level'];
-                }
 
                 //-- Extract file and line number from message
                 $file = '';
@@ -823,8 +937,7 @@ class logFuse
     }
 
 
-
-    ##### Fallback parser that extracts datetime, level, message step by step.
+    ##### FALLBACK PARSER: EXTRACTS DATETIME, LEVEL, MESSAGE SEQUENTIALLY.
 
     private function modularFallback(string $firstLine, string $rest, string $originalFirst): array
     {
@@ -870,8 +983,7 @@ class logFuse
     }
 
 
-
-    ##### Extracts a datetime string from the beginning of a line.
+    ##### EXTRACTS DATETIME FROM A LINE USING MULTIPLE PATTERN ATTEMPTS.
 
     private function extractDatetimeFromLine(string $line): string
     {
@@ -891,8 +1003,7 @@ class logFuse
     }
 
 
-
-    ##### Removes a datetime string from the beginning of a line.
+    ##### REMOVES THE EXTRACTED DATETIME SUBSTRING FROM THE LINE.
 
     private function removeDatetimeFromLine(string $line, string $datetime): string
     {
@@ -906,8 +1017,7 @@ class logFuse
     }
 
 
-
-    ##### Extracts log level from the remaining part of the line.
+    ##### EXTRACTS LOG LEVEL FROM A LINE (E.G., "PHP ERROR:", "[WARNING]", "ERROR:").
 
     private function extractLevelFromLine(string $line): ?array
     {
@@ -930,12 +1040,7 @@ class logFuse
     }
 
 
-
-    ########################### STACKTRACE PARSING
-
-
-
-    ##### Parses a stack trace from the remaining lines after the first line.
+    ##### PARSES STACKTRACE FROM THE REST OF THE ENTRY (AFTER THE FIRST LINE).
 
     private function parseStacktrace(string $rest, string &$message): array
     {
@@ -944,7 +1049,6 @@ class logFuse
             return $stacktrace;
         }
 
-        //-- Identify stack trace block
         $stackBlock = '';
         if (preg_match('/^(Stack trace:.*)$/s', $rest, $sm)) {
             $stackBlock = $sm[1];
@@ -1018,10 +1122,9 @@ class logFuse
     ########################### DATE FORMATTING
 
 
+    ##### FORMATS A DATETIME STRING OR TIMESTAMP INTO A LOCALIZED HUMAN-READABLE STRING.
 
-    ##### Formats a datetime string or timestamp into a human‑readable string.
-
-    private function formatDate(string|int|false|null $uts = false): string
+    public function formatDate(string|int|false|null $timeElem = false): string
     {
         $lang = $this->language;
         $months = match ($lang) {
@@ -1036,33 +1139,41 @@ class logFuse
             'tr' => ['evvelsi gün', 'dün', 'bugün'],
         };
 
-        //-- Convert input to timestamp
+        //-- Convert input to timestamp (use configured timezone for strings without timezone)
         $timestamp = false;
-        if ($uts === false || $uts === null || $uts === '') {
+        if ($timeElem === false || $timeElem === null || $timeElem === '') {
             $timestamp = time();
-        } elseif (is_numeric($uts)) {
-            $timestamp = (int)$uts;
-        } elseif (is_string($uts)) {
-            $uts = preg_replace('/\s+[A-Za-z\/]+$/', '', $uts);
-            if (preg_match('/^[0-9]{2}-[A-Za-z]{3}-[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}$/', $uts)) {
-                $date = \DateTime::createFromFormat('d-M-Y H:i:s', $uts);
+        } elseif (is_numeric($timeElem)) {
+            $timestamp = (int)$timeElem;
+        } elseif (is_string($timeElem)) {
+            // Remove trailing timezone names like "CEST", "UTC", etc.
+            $timeElem = preg_replace('/\s+[A-Za-z\/]+$/', '', $timeElem);
+
+            // Use the configured default timezone for parsing
+            $tz = new \DateTimeZone($this->defaultTimezone);
+
+            if (preg_match('/^[0-9]{2}-[A-Za-z]{3}-[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2}$/', $timeElem)) {
+                $date = \DateTime::createFromFormat('d-M-Y H:i:s', $timeElem, $tz);
                 $timestamp = $date ? $date->getTimestamp() : false;
-            } elseif (preg_match('/^[A-Za-z]{3} [A-Za-z]{3} \d{2} \d{2}:\d{2}:\d{2}\.\d+ \d{4}$/', $uts)) {
-                $date = \DateTime::createFromFormat('D M d H:i:s.u Y', $uts);
+            } elseif (preg_match('/^[A-Za-z]{3} [A-Za-z]{3} \d{2} \d{2}:\d{2}:\d{2}\.\d+ \d{4}$/', $timeElem)) {
+                $date = \DateTime::createFromFormat('D M d H:i:s.u Y', $timeElem, $tz);
                 $timestamp = $date ? $date->getTimestamp() : false;
-            } elseif (preg_match('/^[A-Za-z]{3} [A-Za-z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4}$/', $uts)) {
-                $date = \DateTime::createFromFormat('D M d H:i:s Y', $uts);
+            } elseif (preg_match('/^[A-Za-z]{3} [A-Za-z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4}$/', $timeElem)) {
+                $date = \DateTime::createFromFormat('D M d H:i:s Y', $timeElem, $tz);
                 $timestamp = $date ? $date->getTimestamp() : false;
             } else {
-                $timestamp = strtotime($uts);
+                // Fallback: strtotime uses server default timezone, but we assume UTC for consistency
+                $oldTz = date_default_timezone_get();
+                date_default_timezone_set($this->defaultTimezone);
+                $timestamp = strtotime($timeElem);
+                date_default_timezone_set($oldTz);
             }
         }
-
         if (!$timestamp || $timestamp <= 0) {
             return 'n/a';
         }
 
-        //-- Relative day detection
+        //-- Relative day detection (using server's local time for display)
         $day        = (int) date('j', $timestamp);
         $month      = (int) date('n', $timestamp);
         $year       = (int) date('Y', $timestamp);
@@ -1087,46 +1198,236 @@ class logFuse
 
 
 
-    ########################### ERROR HANDLING
+    ########################### TABULAR SOURCE HELPERS (LAZY DB/CSV)
 
 
+    ##### ADDS A CSV FILE AS LOG SOURCE (LAZY).
 
-    ##### Handles errors: either throws exception or stores message.
-
-    private function handleError(string $message): self
+    private function addCsvSource(string $file, $mapping, array $options): self
     {
+        if (!is_readable($file)) {
+            return $this->handleError("CSV file not readable: $file");
+        }
+
+        $delimiter = $options['csv_delimiter'] ?? ',';
+        $hasHeader = $options['csv_header'] ?? false;
+
+        $fileObj = new \SplFileObject($file);
+        $fileObj->setFlags(\SplFileObject::READ_CSV);
+        $fileObj->setCsvControl($delimiter);
+
+        //-- Skip header if present
+        if ($hasHeader) {
+            $fileObj->current();
+            $fileObj->next();
+        }
+
+        $formatter = $this->buildRowFormatter($mapping, $options);
+        return $this->addTabularData($fileObj, $formatter);
+    }
+
+
+    ##### STORES A DATABASE SOURCE FOR LAZY LOADING.
+
+    private function addDatabaseSourceLazy(string $dsn, string $table, $mapping, array $options): void
+    {
+        $this->sourceLoaders[] = function () use ($dsn, $table, $mapping, $options) {
+            return $this->loadDatabaseRows($dsn, $table, $mapping, $options);
+        };
+        $this->dirty = true;
+    }
+
+
+    ##### ACTUALLY LOADS ROWS FROM DATABASE USING CURRENT PAGINATION SETTINGS (LIMIT/OFFSET).
+
+    private function loadDatabaseRows(string $dsn, string $table, $mapping, array $options): array
+    {
+        $db = $this->connectDatabaseWithRetry($dsn, $options);
+        if ($db === null) {
+            return [];
+        }
+
+        //-- Use current pagination values
+        $limit = $this->pageSize;
+        if ($limit == 0) {
+            $effective = $this->getEffectiveRowLimit();
+            if ($effective !== null) {
+                $limit = $effective;
+            }
+        }
+        $offset = ($this->pageNumber - 1) * $this->pageSize;
+
+        $sql = "SELECT * FROM " . $this->escapeIdentifier($table);
+        if ($limit > 0) {
+            $sql .= " LIMIT " . (int)$limit;
+            if ($offset > 0) {
+                $sql .= " OFFSET " . (int)$offset;
+            }
+        }
+
+        if ($this->debug) {
+            $this->addDebug("DB Query: $sql");
+        }
+
+        $rows = [];
+        if ($db instanceof \SQLite3) {
+            $result = $db->query($sql);
+            if ($result !== false) {
+                while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                    $rows[] = $row;
+                }
+            }
+        } elseif ($db instanceof \PDO) {
+            $stmt = $db->query($sql);
+            if ($stmt !== false) {
+                $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            }
+        }
+
+        $formatter = $this->buildRowFormatter($mapping, $options);
+        $lines = [];
+        foreach ($rows as $row) {
+            $lines[] = $this->normalizeLineEndings($formatter($row));
+        }
+        return $lines;
+    }
+
+
+    ##### ESTABLISHES DATABASE CONNECTION FOR SQLITE OR PDO WITH RETRY.
+
+    private function connectDatabaseWithRetry(string $dsn, array $options)
+    {
+        $maxAttempts = 2;
+        $attempt = 0;
+        $lastException = null;
+
+        while ($attempt < $maxAttempts) {
+            $attempt++;
+            try {
+                if (str_starts_with($dsn, 'sqlite:')) {
+                    $dbFile = substr($dsn, 7);
+                    $dbDir = dirname($dbFile);
+                    if (!is_dir($dbDir)) {
+                        mkdir($dbDir, 0755, true);
+                    }
+                    return new \SQLite3($dbFile);
+                }
+
+                $username = $options['username'] ?? '';
+                $password = $options['password'] ?? '';
+                $driverOptions = $options['driver_options'] ?? [];
+                return new \PDO($dsn, $username, $password, $driverOptions);
+            } catch (\Exception $e) {
+                $lastException = $e;
+                if ($this->debug) {
+                    $this->addDebug("Database connection attempt $attempt failed: " . $e->getMessage());
+                }
+                if ($attempt >= $maxAttempts) {
+                    return $this->handleDatabaseError($e);
+                }
+                usleep(100000);
+            }
+        }
+
+        return null;
+    }
+
+
+    ##### HANDLES DATABASE CONNECTION ERRORS.
+
+    private function handleDatabaseError(\Exception $e)
+    {
+        $message = "Database connection failed: " . $e->getMessage();
         if ($this->throwExceptions) {
-            throw new \InvalidArgumentException($message);
+            throw new \RuntimeException($message, 0, $e);
         }
         $this->errors[] = $message;
-        return $this;
+        return null;
     }
 
 
+    ##### BUILDS A ROW FORMATTER CALLABLE BASED ON MAPPING CONFIGURATION.
 
-    ##### Formats error messages for HTML or JSON output.
-
-    private function formatErrors(string $format): string
+    private function buildRowFormatter($mapping, array $options): callable
     {
-        $errorHtml = '<div class="lf-errors" style="background:#f8d7da; border-left:4px solid #e25950; padding:12px; margin-bottom:16px; border-radius:4px; font-family:monospace;">'
-            . '<strong>Log Error(s):</strong><br>'
-            . implode('<br>', array_map('htmlspecialchars', $this->errors))
-            . '</div>';
-
-        if ($format === 'html') {
-            return $errorHtml . '<ul class="lf-list"></ul>';
+        if (is_callable($mapping)) {
+            return $mapping;
         }
 
-        return json_encode(['errors' => $this->errors, 'entries' => []], JSON_PRETTY_PRINT);
+        if ($mapping === null) {
+            return function ($row) {
+                $datetime = $row['datetime'] ?? $row['timestamp'] ?? $row['created_at'] ?? '';
+                $level    = $row['level'] ?? $row['severity'] ?? 'INFO';
+                $message  = $row['message'] ?? $row['msg'] ?? (is_array($row) ? json_encode($row) : (string)$row);
+                return "[$datetime] $level: $message";
+            };
+        }
+
+        if (isset($mapping[0]) && isset($mapping[1]) && isset($mapping[2])) {
+            return function ($row) use ($mapping) {
+                $datetime = $row[$mapping[0]] ?? '';
+                $level    = $row[$mapping[1]] ?? 'INFO';
+                $message  = $row[$mapping[2]] ?? '';
+                return "[$datetime] $level: $message";
+            };
+        }
+
+        if (isset($mapping['datetime']) || isset($mapping['level']) || isset($mapping['message'])) {
+            return function ($row) use ($mapping) {
+                $datetime = isset($mapping['datetime']) ? ($row[$mapping['datetime']] ?? '') : '';
+                $level    = isset($mapping['level']) ? ($row[$mapping['level']] ?? 'INFO') : 'INFO';
+                $message  = $this->buildMessageFromMapping($row, $mapping['message'] ?? '');
+                return "[$datetime] $level: $message";
+            };
+        }
+
+        return function ($row) {
+            return is_array($row) ? implode(' | ', $row) : (string)$row;
+        };
     }
 
 
+    ##### BUILDS A MESSAGE STRING FROM ROW DATA USING THE MAPPING DEFINITION.
 
-    ########################### HELPERS
+    private function buildMessageFromMapping(array $row, $messageDef): string
+    {
+        if (is_string($messageDef) && isset($row[$messageDef])) {
+            return (string)$row[$messageDef];
+        }
+
+        if (is_string($messageDef) && strpos($messageDef, '{') !== false) {
+            return preg_replace_callback('/\{([a-zA-Z0-9_]+)\}/', function ($matches) use ($row) {
+                return $row[$matches[1]] ?? '';
+            }, $messageDef);
+        }
+
+        if (is_array($messageDef) && isset($messageDef['fields'])) {
+            $parts = [];
+            foreach ($messageDef['fields'] as $field) {
+                $parts[] = $row[$field] ?? '';
+            }
+            $glue = $messageDef['glue'] ?? ' ';
+            $prefix = $messageDef['prefix'] ?? '';
+            $suffix = $messageDef['suffix'] ?? '';
+            return $prefix . implode($glue, $parts) . $suffix;
+        }
+
+        return '';
+    }
 
 
+    ##### SECURELY ESCAPES A DATABASE IDENTIFIER (TABLE OR COLUMN NAME).
 
-    ##### Normalizes line endings to Unix style (\n).
+    private function escapeIdentifier(string $name): string
+    {
+        if (preg_match('/[^a-zA-Z0-9_\.]/', $name)) {
+            throw new \InvalidArgumentException('Invalid identifier: ' . $name);
+        }
+        return '`' . str_replace('`', '``', $name) . '`';
+    }
+
+
+    ##### NORMALIZES LINE ENDINGS TO UNIX FORMAT (\N).
 
     private function normalizeLineEndings(string $line): string
     {

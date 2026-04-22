@@ -54,7 +54,7 @@ h1 {
     position: fixed;
     top: 15px;
     right: 20px;
-    perspective: 220px;
+    perspective: 120px;
     width: 100px;
     z-index: 1000;
     transition: all 200ms;

@@ -1,21 +1,21 @@
-[{{LAST_YEAR}}] [core:error] [client 127.0.0.1] server reached MaxRequestWorkers setting, consider raising the MaxRequestWorkers setting
-[{{DAYS_AGO:60}}] [php:error] [client 203.0.113.30] PHP Fatal error:  Uncaught Error: Call to undefined function str_contains() in /var/www/compat.php:45
-[{{DAYS_AGO:45}}] [core:notice] [client 192.168.1.50] AH00128: File does not exist: /var/www/favicon.ico
-[{{DAYS_AGO:40}}] [php:warning] [client 10.0.0.4] PHP Warning:  fopen(/tmp/session.txt): failed to open stream: Permission denied in /var/www/session.php on line 23
-[{{DAYS_AGO:35}}] [core:error] [client 198.51.100.20] script '/var/www/admin.php' not found or unable to stat
-[{{DAYS_AGO:30}}] [php:notice] [client 127.0.0.1] PHP Notice:  Trying to get property 'id' of non-object in /var/www/object.php on line 6
-[{{DAYS_AGO:25}}] [core:error] [client 192.168.1.40] AH00124: Request exceeded the limit of 10 internal redirects due to probable configuration error
-[{{DAYS_AGO:21}}] [php:warn] [client 203.0.113.10] PHP Warning:  Invalid argument supplied for foreach() in /var/www/loop.php on line 12
-[{{DAYS_AGO:20}}] [core:notice] [client 10.0.0.3] Graceful restart requested, doing restart
-[{{DAYS_AGO:18}}] [php:error] [client 192.168.1.30] PHP Parse error:  syntax error, unexpected '}' in /var/www/template.php on line 77
-[{{DAYS_AGO:15}}] [core:error] [client 198.51.100.7] File does not exist: /var/www/robots.txt
-[{{DAYS_AGO:14}}] [core:notice] [client 127.0.0.1] caught SIGTERM, shutting down
-[{{DAYS_AGO:12}}] [php:warning] [client 192.168.1.20] PHP Warning:  mysqli_query() expects parameter 1 to be mysqli, null given in /var/www/db.php on line 15
-[{{DAYS_AGO:10}}] [core:error] [client 203.0.113.5] client denied by server configuration: /var/www/secret/
-[{{DAYS_AGO:7}}] [php:notice] [client 192.168.1.10] PHP Notice:  Undefined index: user_id in /var/www/login.php on line 33
-[{{DAYS_AGO:5}}] [core:alert] [client 10.0.0.2] .htaccess: Invalid command 'Require all granted'
-[{{DAYS_AGO:3}}] [php:error] [client 127.0.0.1] PHP Fatal error:  Allowed memory size exhausted in /var/www/cron.php on line 89
-[{{DAYS_AGO:2}}] [core:error] [client 192.168.1.5] Premature end of script headers: index.php
-[{{APACHE_YESTERDAY}}] [php:warn] [client 192.168.1.1] PHP Warning: Division by zero in /var/www/index.php on line 42
-[{{APACHE_TODAY}}] [core:error] [client 127.0.0.1] File not found: /var/www/foo.html
-[{{APACHE_TODAY}}] [core:notice] [client 10.0.0.1] Apache is restarting
+[2111-01-01 11:11:59] [core:error] [client 127.0.0.1] server reached MaxRequestWorkers setting, consider raising the MaxRequestWorkers setting
+[2111-01-01 11:11:60] [php:error] [client 203.0.113.30] PHP Fatal error:  Uncaught Error: Call to undefined function str_contains() in /var/www/compat.php:45
+[2111-01-01 11:11:45] [core:notice] [client 192.168.1.50] AH00128: File does not exist: /var/www/favicon.ico
+[2111-01-01 11:11:30] [php:warning] [client 10.0.0.4] PHP Warning:  fopen(/tmp/session.txt): failed to open stream: Permission denied in /var/www/session.php on line 23
+[2111-01-01 11:11:20] [core:error] [client 198.51.100.20] script '/var/www/admin.php' not found or unable to stat
+[2111-01-01 11:11:15] [php:notice] [client 127.0.0.1] PHP Notice:  Trying to get property 'id' of non-object in /var/www/object.php on line 6
+[2111-01-01 11:11:10] [core:error] [client 192.168.1.40] AH00124: Request exceeded the limit of 10 internal redirects due to probable configuration error
+[2111-01-01 11:11:07] [php:warn] [client 203.0.113.10] PHP Warning:  Invalid argument supplied for foreach() in /var/www/loop.php on line 12
+[2111-01-01 11:11:05] [core:notice] [client 10.0.0.3] Graceful restart requested, doing restart
+[2111-01-01 11:11:03] [php:error] [client 192.168.1.30] PHP Parse error:  syntax error, unexpected '}' in /var/www/template.php on line 77
+[2111-01-01 11:11:02] [core:error] [client 198.51.100.7] File does not exist: /var/www/robots.txt
+[2111-01-01 11:11:01] [core:notice] [client 127.0.0.1] caught SIGTERM, shutting down
+[2111-01-01 11:11:01] [php:warning] [client 192.168.1.20] PHP Warning:  mysqli_query() expects parameter 1 to be mysqli, null given in /var/www/db.php on line 15
+[2111-01-01 11:11:01] [core:error] [client 203.0.113.5] client denied by server configuration: /var/www/secret/
+[2111-01-01 11:11:01] [php:notice] [client 192.168.1.10] PHP Notice:  Undefined index: user_id in /var/www/login.php on line 33
+[2111-01-01 11:11:00] [core:alert] [client 10.0.0.2] .htaccess: Invalid command 'Require all granted'
+[2111-01-01 11:11:00] [php:error] [client 127.0.0.1] PHP Fatal error:  Allowed memory size exhausted in /var/www/cron.php on line 89
+[2111-01-01 11:11:00] [core:error] [client 192.168.1.5] Premature end of script headers: index.php
+[2111-01-01 11:11:00] [php:warn] [client 192.168.1.1] PHP Warning: Division by zero in /var/www/index.php on line 42
+[2111-01-01 11:11:00] [core:error] [client 127.0.0.1] File not found: /var/www/foo.html
+[2111-01-01 11:11:00] [core:notice] [client 10.0.0.1] Apache is restarting
