@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /**
  * SINGLE POINT OF TRUTH - all magic seconds with their day offsets.
  */
@@ -23,13 +22,66 @@ const MAGIC_SECONDS = [
 ];
 
 
+
+
+// ------------------------------------------------------------------
+// Shared processing function
+// ------------------------------------------------------------------
+function processLogSource(array $config, array $logOptions, array $pagination, string $language, string $order, string $outputFormat, DateTimeZone $timezone, ?int $baseTimestamp): array
+{
+    $log = new \e2\logFuse($logOptions);
+
+    //-- Source-specific setup
+    if ($config['type'] === 'tabular') {
+        $log->addTabularSource($config['source'], $config['mapping'], $config['options'] ?? []);
+    } elseif ($config['type'] === 'filecontent') {
+        $log->addFileContent($config['content']);
+    }
+
+    //-- Common settings
+    $log->setLanguage($language)
+        ->setOrder($order)
+        ->setPagination($pagination['pageNumber'], $pagination['pageSize']);
+
+    if (isset($config['indexDir'])) {
+        $log->setIndexDirectory($config['indexDir']);
+    }
+
+    $totalEntries = $log->getTotalEntryCount();
+    $output       = $log->getOutput($outputFormat);
+
+    //-- Display debug output if requested
+    if ($logOptions['debug']) {
+        echo '<h3>Debug Output from logFuse</h3>';
+        $log->getDebug('output');
+    }
+
+    //-- Show collected errors
+    $errors = $log->getErrors();
+    if (!empty($errors)) {
+        echo '<div class="message error"><strong>Errors:</strong> ' . htmlspecialchars(implode(', ', $errors)) . '</div>';
+    }
+
+    return [
+        'totalEntries' => $totalEntries,
+        'output'       => $output,
+        'errors'       => $errors,
+        'logInstance'  => $log,
+    ];
+}
+
+
+
 /**
  * Replaces formatted Magic Dates in the final HTML output.
  * Uses the same logFuse instance to get the target formatted string.
  */
-function replaceFormattedMagicDatesUsingLogFuse(string $html, \e2\logFuse $log, DateTimeZone $timezone): string
+function replaceFormattedMagicDatesUsingLogFuse(string $html, \e2\logFuse $log, DateTimeZone $timezone, ?int $baseTimestamp = null): string
 {
-    $now = new DateTime('now', $timezone);
+    if ($baseTimestamp === null) {
+        $baseTimestamp = strtotime(date('Y-m-d H:00:00'));
+    }
+    $now = new DateTime('@' . $baseTimestamp, $timezone);
     $nowTimestamp = $now->getTimestamp();
 
     foreach (MAGIC_SECONDS as $sec => $offsetDays) {
@@ -44,7 +96,6 @@ function replaceFormattedMagicDatesUsingLogFuse(string $html, \e2\logFuse $log, 
 
     return $html;
 }
-
 
 /**
  * Replaces Magic Dates (2111-01-01 11:11:XX) with current dates (for preview only).
@@ -71,7 +122,6 @@ function replaceMagicDates(string $content, ?DateTimeZone $timezone = null, ?Dat
 
     return str_replace(array_keys($mapping), array_values($mapping), $content);
 }
-
 
 /**
  * Creates a demo SQLite database with standard 3-column structure.
@@ -133,7 +183,6 @@ function initLegacyDatabase(string $logDir): void
     $db->close();
 }
 
-
 /**
  * Generates a text-based table preview from the legacy database.
  * Shows entries with REPLACED dates (so the user sees current data).
@@ -166,7 +215,6 @@ function generateLegacyTablePreview(string $dbPath, string $table, int $limit = 
     }
 
     // KEINE Ersetzung der Magic Dates mehr! Zeige die rohen Daten.
-
     $output = "+---------------------+---------+----------------------------------+\n";
     $output .= "| log_time            | level   | message                          |\n";
     $output .= "+---------------------+---------+----------------------------------+\n";
@@ -219,7 +267,6 @@ function renderLogFileDropdown(string $selectedLog, array $logFiles, string $log
 
     return $html;
 }
-
 
 /**
  * Generates a text-based preview for CSV files.

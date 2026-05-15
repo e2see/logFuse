@@ -4,7 +4,7 @@
 
 # logFuse – because errors are beautiful
 
-**Making mistakes is beautiful. Learning from them even more so.**  
+**Making mistakes is beautiful. Learning from them even more so.**
 logFuse turns your messy, screaming error logs into clean, structured output – **HTML** for humans, **JSON** for machines.
 
 > ⚡ **Not just a pretty printer** – logFuse parses, groups, and structures your logs so you can use them anywhere: on screen, in APIs, or in your data pipeline.
@@ -12,7 +12,7 @@ logFuse turns your messy, screaming error logs into clean, structured output –
 ---
 
 <br><br>
-◤◤◤ Quick Example
+## Quick Example
 
 ```php
 use e2\logFuse;
@@ -30,11 +30,42 @@ echo $log->getOutput('json');   // structured JSON for APIs
 One class. Two outputs. Your choice.
 
 <br><br>
-◤◤◤ HTML MODE – for humans
+## 🚀 High‑Performance Index Mode (for huge log files)
+
+When working with **multi‑gigabyte log files**, logFuse automatically builds a persistent **byte‑offset index** – so it only reads the entries you actually need for the current page.
+
+- **No full file scan** – Index stores entry start positions.
+- **Perfect for DESC pagination** – Newest page is read directly from the end of the file.
+- **Index is cached** – Reused as long as the log file does not change (size / mtime).
+- **Custom cache directory** – Use `setIndexDirectory()` to control where indexes are stored.
+
+```php
+$log = new logFuse();
+$log->setIndexDirectory('/tmp/logfuse_cache')   // optional, default: sys_get_temp_dir()
+    ->addFile('/var/log/huge-error.log')
+    ->setPagination(1, 100)
+    ->setOrder('desc');
+
+// Only the 100 entries of page 1 are read from disk – memory usage stays low
+echo $log->getOutput('html');
+```
+
+To force a rebuild of the index (e.g., after manual log file manipulation):
+
+```php
+$log->clearIndexCache();
+```
+
+When using `addFileContent()` with dynamic content, you can provide a **stable ID** to keep the index cached across requests:
+
+```php
+$log->addFileContent($dynamicLog, 'my_custom_id_v1');
+```
+
+<br><br>
+## HTML MODE – for humans
 
 When you need to **see, understand, and debug** – right in your browser
-
-
 
 **🎨 4 built‑in themes**
 
@@ -44,7 +75,6 @@ When you need to **see, understand, and debug** – right in your browser
 | `light`  | clean, bright, clinical      |
 | `dark`   | night mode, easy on eyes     |
 | `e2`     | original techno style        |
-
 
 ```php
 echo logFuse::getCss('dark');
@@ -77,25 +107,21 @@ Want complete control? The HTML uses clean, semantic .lf-* classes – write you
 **🧠 What you get in HTML**
 
 - Coloured log levels (error, warning, info)
-- Human‑readable, localised dates
+- Human‑readable, localised dates (en, de, tr)
 - File names and line numbers highlighted
 - Stack traces with progress indicators
 - Responsive layout – works on desktop and mobile
 
-
 ![themes](images/themes.jpg)
 
-
-
 <br><br>
-◤◤◤ JSON MODE – for machines
+## JSON MODE – for machines
 
-When you need to **feed logs into APIs, databases, or monitoring systems**.
+When you need to feed logs into APIs, databases, or monitoring systems.
 
-**📦 Structured output**
+### 📦 Structured output
 
 Each log entry becomes a clean, predictable object:
-
 
 ```json
 [
@@ -112,9 +138,11 @@ Each log entry becomes a clean, predictable object:
   }
 ]
 ```
+
 No regex. No guesswork. Just **ready-to-use JSON**.
 
-**🚀 Real‑world use cases**
+<br><br>
+## 🚀 Real‑world use cases
 
 | Use case | How logFuse helps |
 |----------|-------------------|
@@ -124,54 +152,97 @@ No regex. No guesswork. Just **ready-to-use JSON**.
 | **Alerting** | Count errors per hour, trigger alerts on fatal issues |
 | **Automated analysis** | Find most common stack traces, error frequencies |
 
-
-> 💡 *"JSON output turns logFuse into a data pipeline component – not just a viewer."*
-
+> 💡 *“JSON output turns logFuse into a data pipeline component – not just a viewer.”*
 
 <br><br>
-◤◤◤ Playground – learn by doing
+## Tabular Data Sources (CSV, SQLite, MySQL)
+
+logFuse can read logs directly from **databases** and **CSV files** – perfect for existing log tables.
+
+```php
+// From a SQLite table with columns: log_time, log_level, log_message
+$log->addTabularSource('sqlite:/var/log/app.db:logs', ['log_time', 'log_level', 'log_message']);
+
+// From a CSV file with header row
+$log->addTabularSource('/var/log/export.csv', ['datetime', 'level', 'message'], ['csv_header' => true]);
+
+// From any iterable data (e.g. PDO statement, array) with custom formatter
+$log->addTabularData($myRows, fn($row) => "[{$row['date']}] {$row['severity']}: {$row['text']}");
+```
+
+The same parsing, grouping, and formatting applies – your database logs become instantly readable.
+
+<br><br>
+## 🐛 Debug Mode
+
+Enable debug mode to see exactly how logFuse parses your logs, builds the index, and applies pagination.
+
+```php
+$log = new logFuse(['debug' => true]);
+$log->addFile('/var/log/error.log');
+// ... set pagination, order, etc.
+echo $log->getOutput('html');
+
+// Output debug log as HTML comment (in HTML mode) or as extra "_debug" key (in JSON mode)
+$log->getDebug('output');   // prints to screen
+$log->getDebug('log');      // writes to error_log
+```
+
+In the **Playground**, append `?debug=1` to the URL to see the internal debug output.
+
+<br><br>
+## Timezone Support
+
+Log timestamps without timezone info? No problem. Set the default timezone in the constructor:
+
+```php
+$log = new logFuse(['timezone' => 'Europe/Berlin']);
+```
+
+All dates will be parsed and displayed consistently.
+
+<br><br>
+## Playground – learn by doing
 
 ![playground](images/playground-screenshot.jpg)
 
+The `playground/` folder contains a **live demo** that showcases all logFuse features.
 
-The `playground/` folder contains a **live demo** with sample log files.
+> **Note about Magic Dates:** The demo logs use special timestamps like `2111-01-01 11:11:XX` (XX = second).
+> These are **static placeholders** that the playground replaces with relative terms (today, yesterday, …) at display time.
+> This keeps the demo evergreen – you always see “today”, “yesterday”, etc., no matter when you run it.
+> The real logFuse class works with any real timestamp; the magic date trick is only for the playground.
 
-> **Note:** The playground adds handy placeholders like `{{TODAY}}`, `{{YESTERDAY}}`, `{{DAYS_AGO:N}}` – these are **demo‑only** to keep examples fresh. They are **not** part of the logFuse class itself.
+**What the playground demonstrates:**
+- Parsing of Apache, PHP, MySQL, and custom logs
+- Switching between HTML and JSON output
+- Changing themes, language (en/de/tr), timezone, and order
+- Pagination (page size and page number)
+- Reading from SQLite (standard 3‑column table) and CSV files
+- Automatic replacement of magic dates with relative terms
+- **Debug mode** – add `?debug=1` to see logFuse internals
 
-Open `playground/index.php` and:
-
-- Pick a sample log file  
-- Switch between HTML and JSON output  
-- Change themes, language, pagination  
-- See parsed output instantly  
+Open `playground/index.php` and try it yourself.
 
 **No database. No setup. Just beautiful errors.**
 
-
 <br><br>
-◤◤◤ Installation
+## Installation
 
 **No Composer required** – copy `src/logFuse.php` into your project.
 
-
 <br><br>
-◤◤◤ Requirements
+## Requirements
 
 - PHP ≥ 8.1
 
-
 <br><br>
-◤◤◤ Making mistakes is beautiful – really
+## Making mistakes is beautiful – really
 
-Every error log is a story. Something went wrong, and now you get to fix it.  
+Every error log is a story. Something went wrong, and now you get to fix it.
 logFuse helps you read that story with clarity, colour, and structure – whether on screen or in your data pipeline.
 
 > 💡 *“Errors are not failures. They are lessons dressed in red – and JSON.”*
 
-
-
-
-
-
-
-
+<br>
+<br>

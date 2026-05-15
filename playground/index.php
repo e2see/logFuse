@@ -32,6 +32,10 @@ $pageNumber      = max(1, (int)($_GET['page'] ?? 1));
 $pageSize        = (int)($_GET['pageSize'] ?? 0);
 $theme           = $_GET['theme']       ?? 'peachy';
 $timezoneStr     = $_GET['timezone']    ?? date_default_timezone_get();
+$debugMode       = isset($_GET['debug']) && $_GET['debug'] == '1';
+
+//-- Deterministic base timestamp: current hour (changes at most hourly)
+$baseTimestamp = strtotime(date('Y-m-d H:00:00'));
 
 //-- Set timezone for the entire request
 date_default_timezone_set($timezoneStr);
@@ -43,132 +47,122 @@ $parseError     = '';
 $totalEntries   = 0;
 $previewContent = '';
 
+// ------------------------------------------------------------------
+// Main processing – only configurations
+// ------------------------------------------------------------------
 if ($selectedLog) {
-    //-- ============================================================
-    //-- 1) CSV file (addTabularSource demo)
-    //-- ============================================================
+    $commonOptions = [
+        'debug'    => $debugMode,
+        'timezone' => $timezoneStr,
+    ];
+    $paginationSettings = [
+        'pageNumber' => $pageNumber,
+        'pageSize'   => $pageSize,
+    ];
+
+    $result = null;
+
+    // 1) CSV file (addTabularSource demo)
     if (str_starts_with($selectedLog, 'csv:')) {
         $csvFile = substr($selectedLog, 4);
         $csvPath = $logDir . $csvFile;
 
         if (file_exists($csvPath)) {
             $previewContent = generateCsvPreview($csvPath, 20, $timezone);
-
-            $log = new logFuse([
-                'debug'    => false,
-                'timezone' => $timezoneStr,
-            ]);
-
-            $log->addTabularSource($csvPath, ['datetime', 'level', 'message'], ['csv_header' => true]);
-
-            $log->setLanguage($language)
-                ->setOrder($order)
-                ->setPagination($pageNumber, $pageSize);
-
-            $totalEntries = $log->getTotalEntryCount();
-            $output = $log->getOutput($outputFormat);
-
-            if ($output !== false) {
-                if ($outputFormat === 'html') {
-                    $resultOutput = replaceFormattedMagicDatesUsingLogFuse($output, $log, $timezone);
-                } else {
-                    $resultOutput = $output;
-                }
-            } else {
-                $parseError = implode(', ', $log->getErrors());
-            }
+            $result = processLogSource(
+                config: [
+                    'type'     => 'tabular',
+                    'source'   => $csvPath,
+                    'mapping'  => ['datetime', 'level', 'message'],
+                    'options'  => ['csv_header' => true],
+                    'indexDir' => __DIR__,
+                ],
+                logOptions   : $commonOptions,
+                pagination   : $paginationSettings,
+                language     : $language,
+                order        : $order,
+                outputFormat : $outputFormat,
+                timezone     : $timezone,
+                baseTimestamp: $baseTimestamp
+            );
         } else {
             $parseError = "CSV file not found: $csvPath";
         }
     }
-
-    //-- ============================================================
-    //-- 2) Legacy SQLite database (standard 3 columns)
-    //-- ============================================================
+    // 2) Legacy SQLite database (standard 3 columns)
     elseif (str_starts_with($selectedLog, 'legacy:')) {
         $dbPath = __DIR__ . '/logs/demo_logs.sqlite';
-        $table  = 'logs';
-
         if (file_exists($dbPath)) {
-            //-- Preview: ASCII table (with replaced dates for readability)
-            $previewContent = generateLegacyTablePreview($dbPath, $table, 20, $timezone);
-
-            $log = new logFuse([
-                'debug'    => false,
-                'timezone' => $timezoneStr,
-            ]);
-
-            //-- Standard 3-column mapping: log_time, log_level, log_message
-            //-- Data was inserted oldest-first. logFuse reads top-to-bottom.
-            //-- With setOrder('desc') it will reverse, showing newest first.
-            $log->addTabularSource("sqlite:$dbPath:$table", ['log_time', 'log_level', 'log_message']);
-
-            $log->setLanguage($language)
-                ->setOrder($order)
-                ->setPagination($pageNumber, $pageSize);
-
-            $totalEntries = $log->getTotalEntryCount();
-            $output = $log->getOutput($outputFormat);
-
-            if ($output !== false) {
-                if ($outputFormat === 'html') {
-                    $resultOutput = replaceFormattedMagicDatesUsingLogFuse($output, $log, $timezone);
-                } else {
-                    $resultOutput = $output;
-                }
-            } else {
-                $parseError = implode(', ', $log->getErrors());
-            }
+            $previewContent = generateLegacyTablePreview($dbPath, 'logs', 20, $timezone);
+            $result = processLogSource(
+                config: [
+                    'type'    => 'tabular',
+                    'source'  => "sqlite:$dbPath:logs",
+                    'mapping' => ['log_time', 'log_level', 'log_message'],
+                    'options' => [],
+                ],
+                logOptions   : $commonOptions,
+                pagination   : $paginationSettings,
+                language     : $language,
+                order        : $order,
+                outputFormat : $outputFormat,
+                timezone     : $timezone,
+                baseTimestamp: $baseTimestamp
+            );
         } else {
             $parseError = "Legacy database not found: $dbPath";
         }
     }
-
-    //-- ============================================================
-    //-- 3) Normal .log file
-    //-- ============================================================
+    // 3) Normal .log file (via addFileContent)
     elseif (file_exists($logDir . $selectedLog)) {
-        $realPath = realpath($logDir . $selectedLog);
-        $realLogDir = realpath($logDir);
+        $realPath    = realpath($logDir . $selectedLog);
+        $realLogDir  = realpath($logDir);
         if ($realPath === false || strpos($realPath, $realLogDir) !== 0) {
             $parseError = "Invalid file path.";
         } else {
             $raw = file_get_contents($realPath);
             if ($raw !== false) {
-                $userInput = $raw;
+                $userInput     = $raw;
                 $previewContent = $raw;
-
-                $log = new logFuse([
-                    'debug'    => false,
-                    'timezone' => $timezoneStr,
-                ]);
-
-                $log->addFileContent($raw)
-                    ->setLanguage($language)
-                    ->setOrder($order)
-                    ->setPagination($pageNumber, $pageSize);
-
-                $totalEntries = $log->getTotalEntryCount();
-                $output = $log->getOutput($outputFormat);
-
-                if ($output !== false) {
-                    if ($outputFormat === 'html') {
-                        $resultOutput = replaceFormattedMagicDatesUsingLogFuse($output, $log, $timezone);
-                    } else {
-                        $resultOutput = $output;
-                    }
-                } else {
-                    $parseError = implode(', ', $log->getErrors());
-                }
+                $result = processLogSource(
+                    config: [
+                        'type'    => 'filecontent',
+                        'content' => $raw,
+                    ],
+                    logOptions: $commonOptions,
+                    pagination: $paginationSettings,
+                    language: $language,
+                    order: $order,
+                    outputFormat: $outputFormat,
+                    timezone: $timezone,
+                    baseTimestamp: $baseTimestamp
+                );
             } else {
                 $parseError = "Log file could not be read: " . htmlspecialchars($selectedLog);
             }
         }
     }
+
+    //-- Evaluate results after processing
+    if ($result !== null) {
+        $totalEntries = $result['totalEntries'];
+        $output       = $result['output'];
+        $errors       = $result['errors'];
+
+        if ($output !== false) {
+            if ($outputFormat === 'html') {
+                $resultOutput = replaceFormattedMagicDatesUsingLogFuse($output, $result['logInstance'], $timezone, $baseTimestamp);
+            } else {
+                $resultOutput = $output;
+            }
+        } else {
+            $parseError = implode(', ', $errors);
+        }
+    }
 }
 
 $logFuseCss = logFuse::getCss($theme);
-$isHtml = ($outputFormat === 'html');
+$isHtml     = ($outputFormat === 'html');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -285,7 +279,7 @@ $isHtml = ($outputFormat === 'html');
                     <span class="info-text">Total entries: <?= $totalEntries ?></span>
                     <?php if ($pageSize > 0 && $totalEntries > 0):
                         $start = ($pageNumber - 1) * $pageSize + 1;
-                        $end = min($pageNumber * $pageSize, $totalEntries);
+                        $end   = min($pageNumber * $pageSize, $totalEntries);
                     ?>
                         <span class="info-text">Showing page <?= $pageNumber ?> (<?= $start ?> – <?= $end ?> of <?= $totalEntries ?>)</span>
                     <?php elseif ($totalEntries > 0): ?>
