@@ -30,7 +30,6 @@ echo $log->getOutput('json');   // structured JSON for APIs
 One class. Two outputs. Your choice.
 
 <br><br>
-<<<<<<< HEAD
 ## 🚀 High‑Performance Index Mode (for huge log files)
 
 When working with **multi‑gigabyte log files**, logFuse automatically builds a persistent **byte‑offset index** – so it only reads the entries you actually need for the current page.
@@ -64,8 +63,6 @@ $log->addFileContent($dynamicLog, 'my_custom_id_v1');
 ```
 
 <br><br>
-=======
->>>>>>> dd4112ce19b61b9cceabed5ecc6f3fb9e47db878
 ## HTML MODE – for humans
 
 When you need to **see, understand, and debug** – right in your browser
@@ -156,11 +153,6 @@ No regex. No guesswork. Just **ready-to-use JSON**.
 | **Automated analysis** | Find most common stack traces, error frequencies |
 
 > 💡 *“JSON output turns logFuse into a data pipeline component – not just a viewer.”*
-<<<<<<< HEAD
-=======
-
-
->>>>>>> dd4112ce19b61b9cceabed5ecc6f3fb9e47db878
 
 <br><br>
 ## Tabular Data Sources (CSV, SQLite, MySQL)
@@ -180,7 +172,6 @@ $log->addTabularData($myRows, fn($row) => "[{$row['date']}] {$row['severity']}: 
 
 The same parsing, grouping, and formatting applies – your database logs become instantly readable.
 
-<<<<<<< HEAD
 <br><br>
 ## 🐛 Debug Mode
 
@@ -198,9 +189,6 @@ $log->getDebug('log');      // writes to error_log
 ```
 
 In the **Playground**, append `?debug=1` to the URL to see the internal debug output.
-=======
-
->>>>>>> dd4112ce19b61b9cceabed5ecc6f3fb9e47db878
 
 <br><br>
 ## Timezone Support
@@ -213,11 +201,6 @@ $log = new logFuse(['timezone' => 'Europe/Berlin']);
 
 All dates will be parsed and displayed consistently.
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> dd4112ce19b61b9cceabed5ecc6f3fb9e47db878
 <br><br>
 ## Playground – learn by doing
 
@@ -225,15 +208,9 @@ All dates will be parsed and displayed consistently.
 
 The `playground/` folder contains a **live demo** that showcases all logFuse features.
 
-<<<<<<< HEAD
 > **Note about Magic Dates:** The demo logs use special timestamps like `2111-01-01 11:11:XX` (XX = second).
 > These are **static placeholders** that the playground replaces with relative terms (today, yesterday, …) at display time.
 > This keeps the demo evergreen – you always see “today”, “yesterday”, etc., no matter when you run it.
-=======
-> **Note about Magic Dates:** The demo logs use special timestamps like `2111-01-01 11:11:XX` (XX = second).  
-> These are **static placeholders** that the playground replaces with relative terms (today, yesterday, …) at display time.  
-> This keeps the demo evergreen – you always see “today”, “yesterday”, etc., no matter when you run it.  
->>>>>>> dd4112ce19b61b9cceabed5ecc6f3fb9e47db878
 > The real logFuse class works with any real timestamp; the magic date trick is only for the playground.
 
 **What the playground demonstrates:**
@@ -243,40 +220,22 @@ The `playground/` folder contains a **live demo** that showcases all logFuse fea
 - Pagination (page size and page number)
 - Reading from SQLite (standard 3‑column table) and CSV files
 - Automatic replacement of magic dates with relative terms
-<<<<<<< HEAD
 - **Debug mode** – add `?debug=1` to see logFuse internals
-=======
->>>>>>> dd4112ce19b61b9cceabed5ecc6f3fb9e47db878
 
 Open `playground/index.php` and try it yourself.
 
 **No database. No setup. Just beautiful errors.**
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> dd4112ce19b61b9cceabed5ecc6f3fb9e47db878
 <br><br>
 ## Installation
 
 **No Composer required** – copy `src/logFuse.php` into your project.
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> dd4112ce19b61b9cceabed5ecc6f3fb9e47db878
 <br><br>
 ## Requirements
 
 - PHP ≥ 8.1
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> dd4112ce19b61b9cceabed5ecc6f3fb9e47db878
 <br><br>
 ## Making mistakes is beautiful – really
 
@@ -286,8 +245,4 @@ logFuse helps you read that story with clarity, colour, and structure – whethe
 > 💡 *“Errors are not failures. They are lessons dressed in red – and JSON.”*
 
 <br>
-<<<<<<< HEAD
 <br>
-=======
-<br>
->>>>>>> dd4112ce19b61b9cceabed5ecc6f3fb9e47db878
