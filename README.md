@@ -9,8 +9,6 @@ logFuse turns your messy, screaming error logs into clean, structured output –
 
 > ⚡ **Not just a pretty printer** – logFuse parses, groups, and structures your logs so you can use them anywhere: on screen, in APIs, or in your data pipeline.
 
----
-
 <br><br>
 ## Quick Example
 
@@ -30,7 +28,7 @@ echo $log->getOutput('json');   // structured JSON for APIs
 One class. Two outputs. Your choice.
 
 <br><br>
-## 🚀 High‑Performance Index Mode (for huge log files)
+## High‑Performance Index Mode (for huge log files)
 
 When working with **multi‑gigabyte log files**, logFuse automatically builds a persistent **byte‑offset index** – so it only reads the entries you actually need for the current page.
 
@@ -67,7 +65,7 @@ $log->addFileContent($dynamicLog, 'my_custom_id_v1');
 
 When you need to **see, understand, and debug** – right in your browser
 
-**🎨 4 built‑in themes**
+### 🎨 4 built‑in themes
 
 | Theme    | Vibe                         |
 |----------|------------------------------|
@@ -80,7 +78,7 @@ When you need to **see, understand, and debug** – right in your browser
 echo logFuse::getCss('dark');
 ```
 
-**✨ Full CSS customisation**
+### ✨ Full CSS customisation
 
 Don't like the colours? Override CSS variables:
 
@@ -104,7 +102,7 @@ Want complete control? The HTML uses clean, semantic .lf-* classes – write you
 </ul>
 ```
 
-**🧠 What you get in HTML**
+### 🧠 What you get in HTML
 
 - Coloured log levels (error, warning, info)
 - Human‑readable, localised dates (en, de, tr)
@@ -142,7 +140,7 @@ Each log entry becomes a clean, predictable object:
 No regex. No guesswork. Just **ready-to-use JSON**.
 
 <br><br>
-## 🚀 Real‑world use cases
+## Real‑world use cases
 
 | Use case | How logFuse helps |
 |----------|-------------------|
@@ -173,7 +171,7 @@ $log->addTabularData($myRows, fn($row) => "[{$row['date']}] {$row['severity']}: 
 The same parsing, grouping, and formatting applies – your database logs become instantly readable.
 
 <br><br>
-## 🐛 Debug Mode
+## Debug Mode
 
 Enable debug mode to see exactly how logFuse parses your logs, builds the index, and applies pagination.
 
@@ -244,5 +242,4 @@ logFuse helps you read that story with clarity, colour, and structure – whethe
 
 > 💡 *“Errors are not failures. They are lessons dressed in red – and JSON.”*
 
-<br>
-<br>
+<br><br>
